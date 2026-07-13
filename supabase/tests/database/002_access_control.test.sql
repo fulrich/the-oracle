@@ -5,6 +5,22 @@ set local search_path = public, extensions;
 
 select plan(76);
 
+-- Normalize mutable reveal state inside this rolled-back transaction so the
+-- suite remains deterministic after a DM has used the local controls. The
+-- seed's one revealed memory per synthetic player is the test baseline.
+delete from public.memory_reveals;
+insert into public.memory_reveals (memory_id, revealed_by)
+values
+  (
+    '33000000-0000-4000-8000-000000000001',
+    '00000000-0000-4000-8000-000000000001'
+  ),
+  (
+    '34000000-0000-4000-8000-000000000001',
+    '00000000-0000-4000-8000-000000000001'
+  );
+delete from public.admin_audit_events;
+
 -- Test-only draft and media registrations exercise publication and private
 -- Storage boundaries without adding synthetic content to the application seed.
 insert into public.memories (
@@ -393,7 +409,7 @@ select set_config(
 
 select results_eq(
   $$select count(*) from public.memories$$,
-  $$values (33::bigint)$$,
+  $$values (35::bigint)$$,
   'the DM can see all approved memories plus the test-only draft'
 );
 select results_eq(
@@ -407,10 +423,10 @@ select results_eq(
     order by character.display_name
   $$,
   $$values
-    ('Aelarion Valcrest'::text, 4::bigint),
+    ('Aelarion Valcrest'::text, 5::bigint),
     ('Dain Voltiran'::text, 12::bigint),
     ('Kaelen Ironheart'::text, 12::bigint),
-    ('Telestra Thornveil'::text, 4::bigint),
+    ('Telestra Thornveil'::text, 5::bigint),
     ('Vaelin Duskbane'::text, 0::bigint)
   $$,
   'the migration imports every currently written campaign memory'
@@ -422,7 +438,7 @@ select results_eq(
     where publication_status = 'published'
       and id::text like '3_000000-0000-4000-8000-%'
   $$,
-  $$values (32::bigint)$$,
+  $$values (34::bigint)$$,
   'all approved campaign memories are player-ready but independently reveal-gated'
 );
 select results_eq(

@@ -8,7 +8,7 @@ The local stack is only a development environment. Before connecting a hosted Su
 2. Link the CLI to the hosted project.
 3. Review every migration, then apply it with `supabase db push`.
 4. Do not run `supabase/seed.sql` in production. It contains synthetic local Auth users.
-5. Verify the reviewed static character roster and 32 approved memories inserted by the migrations. Production migrations create no reveal rows, so every memory begins hidden. The application role intentionally has no character mutation privileges.
+5. Verify the reviewed static character roster and 34 approved memories inserted by the migrations. Production migrations create no reveal rows, so every memory begins hidden. The application role intentionally has no character mutation privileges.
 6. Regenerate `src/types/database.ts` from the linked schema and review the diff.
 
 ## Authentication
