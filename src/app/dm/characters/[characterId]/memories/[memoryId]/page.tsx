@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
+import rehypeSanitize from "rehype-sanitize";
+import remarkGfm from "remark-gfm";
 import {
   ArrowLeftIcon,
   EyeIcon,
@@ -13,16 +15,15 @@ import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 
 import { signOut } from "@/app/auth/actions";
-import {
-  attachMediaToMemory,
-  detachMediaFromMemory,
-} from "@/app/dm/media-actions";
+import { detachMediaFromMemory } from "@/app/dm/media-actions";
 import { setMemoryVisibility } from "@/app/dm/actions";
+import { DmImageLightbox } from "@/components/dm-image-lightbox";
+import { DmMemoryArtworkPicker } from "@/components/dm-memory-artwork-picker";
 import { getAuthState } from "@/lib/auth";
 import { loadDmMemoryMedia } from "@/lib/dm-memory.server";
 
 export const metadata: Metadata = {
-  title: "Manage memory artwork",
+  title: "Edit memory",
 };
 
 const errorMessages: Record<string, string> = {
@@ -182,22 +183,57 @@ export default async function DmMemoryArtworkPage({
           </p>
         ) : null}
 
-        <section aria-labelledby="attached-heading" className="mt-10">
-          <div className="flex items-end justify-between gap-4">
+        <section aria-labelledby="content-heading" className="mt-10">
+          <div>
+            <p className="font-mono text-[0.58rem] tracking-[0.14em] text-[#8ad9cb] uppercase">
+              Edit memory
+            </p>
+            <h2
+              className="mt-2 text-xl font-semibold text-[#e8e4da]"
+              id="content-heading"
+            >
+              Memory content
+            </h2>
+          </div>
+          <article className="mt-5 border border-white/10 bg-[#0e1219] px-5 py-7 sm:px-8 sm:py-9">
+            <p className="max-w-3xl font-serif text-xl leading-8 text-[#d0ccc2] italic">
+              {detail.memory.excerpt}
+            </p>
+            <div className="mt-7 max-w-3xl space-y-6 text-base leading-8 text-[#b9bab5] [&_a]:text-[#a9dcd3] [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:border-l [&_blockquote]:border-white/15 [&_blockquote]:pl-5 [&_blockquote]:italic [&_h1]:font-serif [&_h1]:text-2xl [&_h1]:text-[#dfd9cc] [&_h2]:font-serif [&_h2]:text-xl [&_h2]:text-[#dfd9cc] [&_li]:ml-5 [&_li]:list-disc [&_ol]:space-y-2 [&_p]:mb-6 [&_ul]:space-y-2">
+              <ReactMarkdown
+                rehypePlugins={[rehypeSanitize]}
+                remarkPlugins={[remarkGfm]}
+              >
+                {detail.memory.bodyMarkdown}
+              </ReactMarkdown>
+            </div>
+          </article>
+        </section>
+
+        <section aria-labelledby="attached-heading" className="mt-12">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div>
               <p className="font-mono text-[0.58rem] tracking-[0.14em] text-[#8ad9cb] uppercase">
-                This memory
+                Artwork
               </p>
               <h2
                 className="mt-2 text-xl font-semibold text-[#e8e4da]"
                 id="attached-heading"
               >
-                Attached artwork
+                Attached images
               </h2>
             </div>
-            <p className="font-mono text-[0.58rem] tracking-[0.1em] text-[#6f797d] uppercase">
-              {detail.attached.length} attached
-            </p>
+            <div className="flex items-center justify-between gap-4 sm:justify-end">
+              <p className="font-mono text-[0.58rem] tracking-[0.1em] text-[#6f797d] uppercase">
+                {detail.attached.length} attached
+              </p>
+              <DmMemoryArtworkPicker
+                attachedCount={detail.attached.length}
+                available={detail.available}
+                characterId={detail.character.id}
+                memoryId={detail.memory.id}
+              />
+            </div>
           </div>
 
           {detail.attached.length ? (
@@ -207,14 +243,12 @@ export default async function DmMemoryArtworkPage({
                   className="border border-white/10 bg-[#0e1219] p-3"
                   key={asset.id}
                 >
-                  <div className="relative aspect-[4/3] overflow-hidden border border-white/8 bg-[#090d13]">
-                    <Image
+                  <div className="relative aspect-[5/4] overflow-hidden border border-white/8 bg-[#090d13]">
+                    <DmImageLightbox
                       alt={asset.file_name}
-                      className="object-cover"
-                      fill
-                      sizes="(min-width: 1024px) 28vw, (min-width: 640px) 45vw, 100vw"
+                      className="absolute inset-0"
+                      sizes="(min-width: 1024px) 28vw, (min-width: 640px) 45vw, 90vw"
                       src={asset.previewUrl}
-                      unoptimized
                     />
                   </div>
                   <p className="mt-3 font-mono text-[0.55rem] tracking-[0.1em] text-[#8ad9cb] uppercase">
@@ -250,105 +284,8 @@ export default async function DmMemoryArtworkPage({
             </div>
           ) : (
             <p className="mt-5 border-y border-white/10 py-10 text-center text-sm text-[#697277]">
-              No artwork is attached to this memory.
-            </p>
-          )}
-        </section>
-
-        <section aria-labelledby="available-heading" className="mt-12">
-          <div>
-            <p className="font-mono text-[0.58rem] tracking-[0.14em] text-[#8ad9cb] uppercase">
-              From the library
-            </p>
-            <h2
-              className="mt-2 text-xl font-semibold text-[#e8e4da]"
-              id="available-heading"
-            >
-              Attach artwork
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-[#7f898d]">
-              Choose from unattached {detail.character.displayName} artwork. You
-              can attach several images; their order controls how they appear.
-            </p>
-          </div>
-
-          {detail.available.length ? (
-            <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {detail.available.map((asset, index) => (
-                <article
-                  className="border border-white/10 bg-[#0e1219] p-3"
-                  key={asset.id}
-                >
-                  <div className="relative aspect-[4/3] overflow-hidden border border-white/8 bg-[#090d13]">
-                    <Image
-                      alt={asset.file_name}
-                      className="object-cover"
-                      fill
-                      sizes="(min-width: 1024px) 28vw, (min-width: 640px) 45vw, 100vw"
-                      src={asset.previewUrl}
-                      unoptimized
-                    />
-                  </div>
-                  <p className="mt-3 font-mono text-[0.55rem] tracking-[0.1em] text-[#8ad9cb] uppercase">
-                    {asset.folder}
-                  </p>
-                  <p
-                    className="mt-2 truncate text-sm leading-5 text-[#aeb6b5]"
-                    title={asset.file_name}
-                  >
-                    {asset.file_name}
-                  </p>
-                  <form
-                    action={attachMediaToMemory}
-                    className="mt-4 grid gap-2"
-                  >
-                    <input
-                      name="characterId"
-                      type="hidden"
-                      value={detail.character.id}
-                    />
-                    <input
-                      name="memoryId"
-                      type="hidden"
-                      value={detail.memory.id}
-                    />
-                    <input name="assetId" type="hidden" value={asset.id} />
-                    <label className="grid gap-1 text-[0.55rem] tracking-[0.08em] text-[#7f898d] uppercase">
-                      Role
-                      <select
-                        className="border border-white/10 bg-[#0b0e14] px-2.5 py-2 text-xs tracking-normal text-[#d9dbd5] normal-case focus:border-[#8ad9cb]/45 focus:outline-none"
-                        defaultValue="attachment"
-                        name="purpose"
-                      >
-                        <option value="hero">Primary artwork</option>
-                        <option value="card">Card crop</option>
-                        <option value="attachment">Supporting image</option>
-                      </select>
-                    </label>
-                    <label className="grid gap-1 text-[0.55rem] tracking-[0.08em] text-[#7f898d] uppercase">
-                      Order
-                      <input
-                        className="border border-white/10 bg-[#0b0e14] px-2.5 py-2 text-xs text-[#d9dbd5] focus:border-[#8ad9cb]/45 focus:outline-none"
-                        defaultValue={detail.attached.length + index}
-                        min="0"
-                        name="sortOrder"
-                        type="number"
-                      />
-                    </label>
-                    <button
-                      className="mt-1 border border-[#8ad9cb]/25 bg-[#8ad9cb]/7 px-3 py-2.5 text-[0.58rem] tracking-[0.1em] text-[#c7e6e0] uppercase hover:border-[#8ad9cb]/45 hover:bg-[#8ad9cb]/10 focus-visible:ring-2 focus-visible:ring-[#8ad9cb]/65"
-                      type="submit"
-                    >
-                      Attach to memory
-                    </button>
-                  </form>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-5 border-y border-white/10 py-10 text-center text-sm text-[#697277]">
-              No unattached artwork is available for this character. Add it from
-              the media library first.
+              No artwork is attached to this memory. Use Attach artwork to
+              choose one from the library.
             </p>
           )}
         </section>

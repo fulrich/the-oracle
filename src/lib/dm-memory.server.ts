@@ -14,6 +14,7 @@ type MemoryDetailRow = {
   chapter_label: string;
   title: string;
   excerpt: string;
+  markdown_body: string;
   publication_status: "draft" | "published" | "archived";
   memory_reveals: { memory_id: string }[] | null;
 };
@@ -26,6 +27,7 @@ export type DmMemoryMediaDetail = {
     chapterLabel: string;
     title: string;
     excerpt: string;
+    bodyMarkdown: string;
     revealed: boolean;
   };
   attached: DmMediaAsset[];
@@ -68,7 +70,7 @@ export async function loadDmMemoryMedia(
     supabase
       .from("memories")
       .select(
-        "id, position, chapter_label, title, excerpt, publication_status, memory_reveals(memory_id)",
+        "id, position, chapter_label, title, excerpt, markdown_body, publication_status, memory_reveals(memory_id)",
       )
       .eq("id", memoryId)
       .eq("character_id", characterId)
@@ -110,6 +112,7 @@ export async function loadDmMemoryMedia(
       chapterLabel: memory.chapter_label,
       title: memory.title,
       excerpt: memory.excerpt,
+      bodyMarkdown: memory.markdown_body,
       revealed: Boolean(memory.memory_reveals),
     },
     attached: assets.filter((asset) => asset.memory_id === memory.id),

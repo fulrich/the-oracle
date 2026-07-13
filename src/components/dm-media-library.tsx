@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
@@ -11,6 +10,7 @@ import {
   registerMediaAsset,
   updateMediaAsset,
 } from "@/app/dm/media-actions";
+import { DmImageLightbox } from "@/components/dm-image-lightbox";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import type {
   DmMediaAsset,
@@ -198,9 +198,9 @@ export function DmMediaLibrary({
   }
 
   return (
-    <div className="mt-8 grid gap-10 xl:grid-cols-[minmax(20rem,0.75fr)_minmax(0,1.25fr)]">
+    <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(15rem,0.55fr)_minmax(0,1.45fr)]">
       <section aria-labelledby="upload-heading">
-        <div className="border border-white/10 bg-[#0e1219] p-5 sm:p-6">
+        <div className="border border-white/10 bg-[#0e1219] p-4 sm:p-5">
           <p className="font-mono text-[0.58rem] tracking-[0.14em] text-[#8ad9cb] uppercase">
             Add to the library
           </p>
@@ -363,7 +363,7 @@ export function DmMediaLibrary({
         </div>
 
         {filteredAssets.length ? (
-          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 2xl:grid-cols-4">
             {filteredAssets.map((asset) => (
               <MediaAssetCard
                 asset={asset}
@@ -426,22 +426,20 @@ function MediaAssetCard({
   }
 
   return (
-    <article className="border border-white/10 bg-[#0e1219] p-3">
-      <div className="relative aspect-[4/3] overflow-hidden border border-white/8 bg-[#090d13]">
-        <Image
+    <article className="border border-white/10 bg-[#0e1219] p-2.5">
+      <div className="relative aspect-[5/4] overflow-hidden border border-white/8 bg-[#090d13]">
+        <DmImageLightbox
           alt={asset.file_name}
-          className="object-cover"
-          fill
-          sizes="(min-width: 1280px) 22rem, (min-width: 640px) 40vw, 100vw"
+          className="absolute inset-0"
+          sizes="(min-width: 1536px) 15rem, (min-width: 640px) 28vw, 45vw"
           src={asset.previewUrl}
-          unoptimized
         />
         <span className="absolute top-2 left-2 bg-[#090d13]/80 px-2 py-1 font-mono text-[0.5rem] tracking-[0.1em] text-[#b5c0bd] uppercase">
           {purposeLabels[asset.purpose]}
         </span>
       </div>
 
-      <div className="mt-3 grid gap-3">
+      <div className="mt-2.5 grid gap-2.5">
         <p className="truncate text-sm text-[#d5d8d1]" title={asset.file_name}>
           {asset.file_name}
         </p>

@@ -88,9 +88,12 @@ function failure(message: string): { ok: false; message: string } {
   return { ok: false, message };
 }
 
-function revalidateMedia(characterId: string) {
+function revalidateMedia(characterId: string, memoryId?: string) {
   revalidatePath("/dm/media");
   revalidatePath(`/dm/characters/${characterId}`);
+  if (memoryId) {
+    revalidatePath(`/dm/characters/${characterId}/memories/${memoryId}`);
+  }
   revalidatePath(`/dm/preview/${characterId}`);
   revalidatePath("/");
 }
@@ -357,7 +360,7 @@ export async function attachMediaToMemory(formData: FormData): Promise<void> {
     redirect(`${detailPath}?error=media_attachment_failed`);
   }
 
-  revalidateMedia(input.data.characterId);
+  revalidateMedia(input.data.characterId, input.data.memoryId);
   redirect(`${detailPath}?updated=media_attached`);
 }
 
@@ -390,7 +393,7 @@ export async function detachMediaFromMemory(formData: FormData): Promise<void> {
     redirect(`${detailPath}?error=media_detachment_failed`);
   }
 
-  revalidateMedia(input.data.characterId);
+  revalidateMedia(input.data.characterId, input.data.memoryId);
   redirect(`${detailPath}?updated=media_detached`);
 }
 
