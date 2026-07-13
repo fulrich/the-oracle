@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Google OAuth is not exercised by database tests, but local Auth requires
+      # a non-empty server-only value when the provider is enabled.
+      SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET: ci-not-used
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm db:start
+      - run: pnpm db:test
+      - run: pnpm exec supabase db lint --local --level warning
+      - run: pnpm db:types
+      - run: git diff --exit-code -- src/types/database.ts
