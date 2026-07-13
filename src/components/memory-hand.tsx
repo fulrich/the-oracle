@@ -9,7 +9,6 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon,
   EyeIcon,
-  MoveHorizontalIcon,
   SparklesIcon,
   XIcon,
 } from "lucide-react";
@@ -223,11 +222,7 @@ export function MemoryHand({ memories }: { memories: readonly Memory[] }) {
         onScroll={handleHandScroll}
         ref={handStageRef}
       >
-        <div
-          aria-label="Recovered memories. Use the left and right arrow keys to move through the hand."
-          className={styles.handRail}
-          role="group"
-        >
+        <div aria-label="Memory cards" className={styles.handRail} role="group">
           {memories.map((memory, index) => (
             <button
               aria-haspopup="dialog"
@@ -265,13 +260,12 @@ export function MemoryHand({ memories }: { memories: readonly Memory[] }) {
                 </span>
                 <span className={styles.cardVellum} />
                 <span className={styles.cardTopline}>
-                  <span>Recovered</span>
+                  <span>{memory.chapter}</span>
                   <span className={styles.cardIndex}>
                     {romanNumerals[index] ?? index + 1}
                   </span>
                 </span>
                 <span className={styles.cardCopy}>
-                  <span className={styles.cardChapter}>{memory.chapter}</span>
                   <span className={styles.cardTitle}>{memory.title}</span>
                 </span>
                 <SparklesIcon
@@ -287,11 +281,6 @@ export function MemoryHand({ memories }: { memories: readonly Memory[] }) {
 
       <div aria-live="polite" className="sr-only">
         Memory in focus: {memories[activeIndex].title}
-      </div>
-
-      <div className="mt-1 flex items-center justify-center gap-2 text-[0.64rem] tracking-[0.15em] text-[#aab0b5] uppercase md:hidden">
-        <MoveHorizontalIcon aria-hidden="true" className="size-3.5" />
-        Swipe to move through the hand
       </div>
 
       <Dialog
@@ -412,10 +401,10 @@ export function MemoryHand({ memories }: { memories: readonly Memory[] }) {
                   <figcaption className="absolute right-6 bottom-6 left-6 z-10 flex items-end justify-between gap-6 text-[0.6rem] tracking-[0.16em] text-white/52 uppercase sm:right-9 sm:bottom-8 sm:left-9">
                     <span>
                       {selectedImage
-                        ? "Recovered impression"
+                        ? "Memory impression"
                         : selectedMemory.visualState === "placeholder"
                           ? "Ambient memory study"
-                          : "Recovered impression"}
+                          : "Memory impression"}
                     </span>
                     <span>
                       {selectedImage
@@ -448,10 +437,6 @@ export function MemoryHand({ memories }: { memories: readonly Memory[] }) {
                         style={{ color: selectedMemory.tones.glow }}
                       >
                         {selectedMemory.chapter}
-                      </p>
-                      <span className="h-px w-10 bg-white/15" />
-                      <p className="text-[0.62rem] tracking-[0.1em] text-white/55 uppercase">
-                        {selectedMemory.revealed}
                       </p>
                     </div>
 
@@ -521,8 +506,7 @@ export function MemoryHand({ memories }: { memories: readonly Memory[] }) {
                       <p className="font-heading mt-2 text-2xl leading-tight tracking-[-0.025em] text-[#dfd9cc]">
                         {selectedMemory.title}
                       </p>
-                      <div className="mt-5 flex items-center justify-between border-t border-white/8 pt-4 font-mono text-[0.55rem] tracking-[0.12em] text-white/55 uppercase">
-                        <span>Recovered</span>
+                      <div className="mt-5 flex justify-end border-t border-white/8 pt-4 font-mono text-[0.55rem] tracking-[0.12em] text-white/55 uppercase">
                         <span>
                           {String((selectedIndex ?? 0) + 1).padStart(2, "0")} /{" "}
                           {String(memories.length).padStart(2, "0")}
@@ -536,7 +520,7 @@ export function MemoryHand({ memories }: { memories: readonly Memory[] }) {
                       className="font-mono text-[0.62rem] font-semibold tracking-[0.2em] uppercase"
                       style={{ color: selectedMemory.tones.glow }}
                     >
-                      Recovered memory
+                      Memory
                     </p>
                     <h2
                       className="sr-only"

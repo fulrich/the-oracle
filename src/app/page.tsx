@@ -9,7 +9,7 @@ import { loadPlayerMemoryArchive } from "@/lib/memory-archive.server";
 
 export const metadata: Metadata = {
   title: "Memories",
-  description: "Your private archive of recovered memories.",
+  description: "Your memories from the Forgotten Shadows campaign.",
 };
 
 function MissingCharacterAssignment() {

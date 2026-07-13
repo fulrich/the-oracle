@@ -45,11 +45,6 @@ const memoryTones: readonly Memory["tones"][] = [
   },
 ];
 
-const revealDateFormatter = new Intl.DateTimeFormat("en-US", {
-  dateStyle: "medium",
-  timeZone: "UTC",
-});
-
 function paragraphsFromMarkdown(markdown: string): readonly string[] {
   return markdown
     .split(/\n\s*\n/u)
@@ -65,12 +60,10 @@ export function archiveRowsToMemorySet(
     playerName: character.displayName,
     playerInitials: character.initials,
     playerSubtitle: character.subtitle ?? "Player character",
-    archiveNote: character.archiveNote ?? "The archive is quiet tonight",
     memories: rows.map((row, index) => ({
       id: row.memory_id,
       chapter: row.chapter_label,
       title: row.title,
-      revealed: `Recovered ${revealDateFormatter.format(new Date(row.revealed_at))}`,
       excerpt: row.excerpt,
       body: paragraphsFromMarkdown(row.markdown_body),
       bodyMarkdown: row.markdown_body,

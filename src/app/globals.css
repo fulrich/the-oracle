@@ -204,7 +204,7 @@
   }
 
   .memory-shell::after {
-    position: absolute;
+    position: fixed;
     top: 8rem;
     left: 50%;
     z-index: -1;

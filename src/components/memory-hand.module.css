@@ -153,16 +153,6 @@
   left: 1.1rem;
 }
 
-.cardChapter {
-  margin-bottom: 0.42rem;
-  color: var(--card-accent);
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 0.57rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
 .cardTitle {
   max-width: 10rem;
   color: #f2ecdc;

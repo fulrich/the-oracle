@@ -14,7 +14,6 @@ export type Memory = {
   id: string;
   chapter: string;
   title: string;
-  revealed: string;
   excerpt: string;
   body: readonly string[];
   bodyMarkdown?: string;
@@ -36,6 +35,5 @@ export type MemorySet = {
   playerName: string;
   playerInitials: string;
   playerSubtitle: string;
-  archiveNote: string;
   memories: readonly Memory[];
 };

@@ -10,13 +10,11 @@ function baseMemorySet(): MemorySet {
     playerName: "Kaelen Ironheart",
     playerInitials: "KI",
     playerSubtitle: "Player character",
-    archiveNote: "The archive is quiet tonight",
     memories: [
       {
         id: "33000000-0000-4000-8000-000000000001",
         chapter: "Fragment I",
         title: "The Echo of the Forge",
-        revealed: "Recovered Jul 12, 2026",
         excerpt: "The heat was a living thing.",
         body: ["The heat was a living thing."],
         quote: "",
@@ -29,7 +27,6 @@ function baseMemorySet(): MemorySet {
         id: "33000000-0000-4000-8000-000000000002",
         chapter: "Fragment II",
         title: "The Stranger at the Bench",
-        revealed: "Recovered Jul 12, 2026",
         excerpt: "The forge was a living thing.",
         body: ["The forge was a living thing."],
         quote: "",

@@ -20,7 +20,6 @@ const testMemories: readonly Memory[] = titles.map((title, index) => ({
   id: `memory-${index + 1}`,
   chapter: `Fragment ${index + 1}`,
   title,
-  revealed: "Recovered Jul 12, 2026",
   excerpt:
     index === 0
       ? "The heat was a living thing—biting, breathing, unrelenting."
@@ -46,7 +45,6 @@ const memorySet: MemorySet = {
   playerName: "Kaelen Ironheart",
   playerInitials: "KI",
   playerSubtitle: "Player character",
-  archiveNote: "The archive is quiet tonight",
   memories: testMemories,
 };
 
@@ -55,7 +53,7 @@ function Home() {
 }
 
 describe("player memory viewer", () => {
-  it("presents the recovered memories as an accessible hand", () => {
+  it("presents the memories as an accessible hand", () => {
     render(<Home />);
 
     expect(
@@ -64,7 +62,7 @@ describe("player memory viewer", () => {
       }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("group", { name: /recovered memories/i }),
+      screen.getByRole("group", { name: "Memory cards" }),
     ).toBeInTheDocument();
     expect(
       screen.getAllByRole("button", { name: /fragment \d+:/i }),
@@ -81,7 +79,7 @@ describe("player memory viewer", () => {
 
     render(<MemoryHand memories={fullSet} />);
 
-    const hand = screen.getByRole("group", { name: /recovered memories/i });
+    const hand = screen.getByRole("group", { name: "Memory cards" });
     expect(within(hand).getAllByRole("button")).toHaveLength(10);
   });
 
