@@ -2,6 +2,7 @@ import "server-only";
 
 import type { ActiveViewer, CharacterIdentity } from "@/lib/auth";
 import type { MemoryArtworkKind, Memory, MemorySet } from "@/lib/memory";
+import { attachMemoryMedia } from "@/lib/memory-media.server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
 
@@ -103,8 +104,9 @@ export async function loadPlayerMemoryArchive(
     throw new Error("Unable to load the memory archive.");
   }
 
+  const memorySet = archiveRowsToMemorySet(viewer.character, data);
   return {
     status: "ready",
-    memorySet: archiveRowsToMemorySet(viewer.character, data),
+    memorySet: await attachMemoryMedia(supabase, memorySet),
   };
 }

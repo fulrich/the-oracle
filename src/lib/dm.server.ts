@@ -3,6 +3,7 @@ import "server-only";
 import type { CharacterIdentity } from "@/lib/auth";
 import { archiveRowsToMemorySet } from "@/lib/memory-archive.server";
 import type { MemorySet } from "@/lib/memory";
+import { attachMemoryMedia } from "@/lib/memory-media.server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export type CharacterAssignmentSummary = CharacterIdentity & {
@@ -151,7 +152,8 @@ export async function loadDmCharacterPreview(
     throw new Error("Unable to load the character preview.");
   }
 
+  const memorySet = archiveRowsToMemorySet(character, archiveRows);
   return {
-    memorySet: archiveRowsToMemorySet(character, archiveRows),
+    memorySet: await attachMemoryMedia(supabase, memorySet),
   };
 }

@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import { KeyRoundIcon } from "lucide-react";
 import { redirect } from "next/navigation";
 
-import { signInAsLocalAccount, signInWithGoogle } from "@/app/auth/actions";
+import { signInWithGoogle } from "@/app/auth/actions";
 import { getAuthState } from "@/lib/auth";
-import { isLocalAuthEnabled } from "@/lib/env";
 
 export const metadata: Metadata = {
   title: "Enter the archive",
@@ -12,19 +11,9 @@ export const metadata: Metadata = {
 };
 
 const errorMessages: Record<string, string> = {
-  oauth_start: "The Google sign-in could not be started. Please try again.",
-  oauth_callback: "Google sign-in could not be completed. Please try again.",
-  local_unavailable: "Local test sign-in is not enabled.",
-  local_invalid: "That local test account is not available.",
-  local_sign_in: "The local test account could not be signed in.",
+  oauth_start: "The gate would not open. Try again.",
+  oauth_callback: "The threshold could not be crossed. Try again.",
 };
-
-const localAccounts = [
-  { email: "dm@example.test", label: "DM administrator" },
-  { email: "player.one@example.test", label: "Kaelen Ironheart" },
-  { email: "player.two@example.test", label: "Telestra Thornveil" },
-  { email: "disabled@example.test", label: "Disabled player" },
-] as const;
 
 export default async function SignInPage({
   searchParams,
@@ -41,7 +30,6 @@ export default async function SignInPage({
 
   const { error } = await searchParams;
   const errorMessage = error ? errorMessages[error] : undefined;
-  const localAuthEnabled = isLocalAuthEnabled();
 
   return (
     <main className="oracle-shell relative isolate grid min-h-svh place-items-center overflow-hidden px-5 py-12">
@@ -54,24 +42,14 @@ export default async function SignInPage({
           >
             <span className="-rotate-45">◇</span>
           </span>
-          <div>
-            <p className="text-[0.65rem] font-semibold tracking-[0.2em] text-[#8ad9cb] uppercase">
-              The Forgotten Oracle
-            </p>
-            <p className="mt-1 text-xs tracking-[0.08em] text-[#727b82]">
-              A private archive
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-10">
-          <h1 className="font-heading text-5xl leading-[0.9] tracking-[-0.045em] text-[#eee8da]">
-            Enter the <em className="text-[#b5dcd4]">archive.</em>
-          </h1>
-          <p className="mt-4 text-sm text-[#8f9699]">
-            Continue with the Google account approved for this campaign.
+          <p className="text-[0.65rem] font-semibold tracking-[0.2em] text-[#8ad9cb] uppercase">
+            The Forgotten Oracle
           </p>
         </div>
+
+        <h1 className="font-heading mt-10 text-5xl leading-[0.9] tracking-[-0.045em] text-[#eee8da]">
+          Enter the <em className="text-[#b5dcd4]">archive.</em>
+        </h1>
 
         {errorMessage ? (
           <p
@@ -88,35 +66,9 @@ export default async function SignInPage({
             type="submit"
           >
             <KeyRoundIcon aria-hidden="true" className="size-4" />
-            Continue with Google
+            Enter
           </button>
         </form>
-
-        {localAuthEnabled ? (
-          <details className="mt-7 border-t border-white/8 pt-6">
-            <summary className="cursor-pointer text-[0.6rem] tracking-[0.14em] text-[#737d82] uppercase marker:text-[#8ad9cb]">
-              Local test identities
-            </summary>
-            <div className="mt-4 grid gap-2">
-              {localAccounts.map((account) => (
-                <form action={signInAsLocalAccount} key={account.email}>
-                  <input name="account" type="hidden" value={account.email} />
-                  <button
-                    className="flex w-full items-center justify-between border border-white/8 bg-white/[0.025] px-3.5 py-2.5 text-left hover:border-white/15 hover:bg-white/[0.045] focus-visible:ring-2 focus-visible:ring-[#8ad9cb]/65"
-                    type="submit"
-                  >
-                    <span className="text-xs text-[#c5c8c5]">
-                      {account.label}
-                    </span>
-                    <span className="font-mono text-[0.52rem] text-[#666f75]">
-                      {account.email}
-                    </span>
-                  </button>
-                </form>
-              ))}
-            </div>
-          </details>
-        ) : null}
       </section>
     </main>
   );

@@ -98,6 +98,22 @@ Deploy with `pnpm dlx vercel --prod`. Then set the same origin as Supabase Auth'
 | `pnpm db:test`      | Run local pgTAP schema and RLS policy tests              |
 | `pnpm db:types`     | Generate TypeScript database types from local Supabase   |
 
+## Memory artwork
+
+Memory artwork is stored in the private `memory-media` Supabase Storage bucket, not in Git or the Next.js bundle. The app renders it through short-lived signed URLs that RLS authorizes per request, so a player only ever loads art for their own revealed memories; memories without art keep an abstract placeholder.
+
+Reviewed, player-safe art is uploaded with an operator script (never part of the app runtime). It needs the project URL and the **secret** service key — never commit that key or expose it to the browser. For the local stack, read both from `pnpm exec supabase status`:
+
+```bash
+SUPABASE_URL=http://127.0.0.1:54321 \
+SUPABASE_SERVICE_ROLE_KEY=<local-secret-key> \
+  node scripts/import-memory-media.mjs \
+    --character kaelen-ironheart \
+    --source <path-to-reviewed-art>/kaelen-ironheart/memories
+```
+
+Files must be named `memory-01.webp`, `memory-02.webp`, ... to match each memory's campaign position. `pnpm db:reset` clears imported media, so re-run the script afterward. See [`docs/supabase-deployment.md`](docs/supabase-deployment.md) for the hosted procedure.
+
 ## Architecture
 
 Read [`docs/tech-stack.md`](docs/tech-stack.md) before changing architectural choices. The hosted setup checklist is in [`docs/supabase-deployment.md`](docs/supabase-deployment.md). Repository-specific agent guidance is in [`AGENTS.md`](AGENTS.md).

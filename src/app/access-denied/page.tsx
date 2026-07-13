@@ -34,9 +34,9 @@ export default async function AccessDeniedPage() {
           Access not granted
         </h1>
         <p className="mx-auto mt-5 max-w-sm text-sm leading-6 text-[#8c9498]">
-          This Google identity is valid, but it does not currently have an
-          active place in the campaign archive. Ask your Dungeon Master to
-          verify the exact email on the allowlist.
+          You were recognized, but no place in the campaign archive is open to
+          you yet. Ask your Dungeon Master to confirm the exact address you
+          signed in with.
         </p>
         <form action={signOut} className="mt-8">
           <button

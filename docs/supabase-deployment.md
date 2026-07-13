@@ -37,6 +37,22 @@ The Auth hook will then permit Google signup, and the `auth.users` linking trigg
 
 Linked allowlist emails are intentionally immutable. Disable an account to revoke it. Do not delete a linked entry or transfer it to another email; a future reviewed administrative workflow will handle identity replacement.
 
+## Memory artwork
+
+Memory artwork lives in the private `memory-media` Storage bucket, never in Git or the Next.js build. The application reads it through short-lived signed URLs authorized by RLS; only a player's revealed memories can be signed.
+
+Provision reviewed, player-safe artwork with the operator script. It requires the hosted project URL and the **secret** service key, which must never be committed, exposed to the browser, or placed in a `NEXT_PUBLIC_*` variable:
+
+```bash
+SUPABASE_URL=https://<project-ref>.supabase.co \
+SUPABASE_SERVICE_ROLE_KEY=<secret-key> \
+  node scripts/import-memory-media.mjs \
+    --character kaelen-ironheart \
+    --source <path-to-reviewed-art>/kaelen-ironheart/memories
+```
+
+Files must be named `memory-01.webp`, `memory-02.webp`, ... matching each memory's campaign position. Each is uploaded to `<memory_id>/hero.webp` and registered as that memory's `hero` image. Re-running is idempotent. Use `--dry-run` to preview the mapping without uploading. Only import art that has been reviewed as player-safe; the source art directory stays external to this repository.
+
 ## Authorization verification
 
 Before inviting players, verify in the hosted environment that:
