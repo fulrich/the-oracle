@@ -48,6 +48,13 @@ const romanNumerals = [
   "X",
 ] as const;
 
+type DetailOrigin = {
+  offsetX: number;
+  offsetY: number;
+  scaleX: number;
+  scaleY: number;
+};
+
 function getCardStyle(
   memories: readonly Memory[],
   index: number,
@@ -66,6 +73,7 @@ function getCardStyle(
     "--relative": relative,
     "--rotation": `${relative * 4.1}deg`,
     "--scan-shift": `${scanDirection * Math.max(0, 28 - distanceFromActive * 5)}px`,
+    "--drift-delay": `${index * -0.65}s`,
   } as CSSProperties;
 }
 
@@ -76,6 +84,9 @@ export function MemoryHand({ memories }: { memories: readonly Memory[] }) {
 
   const initialMemoryIndex = Math.floor((memories.length - 1) / 2);
   const [activeIndex, setActiveIndex] = useState(initialMemoryIndex);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [openingIndex, setOpeningIndex] = useState<number | null>(null);
+  const [detailOrigin, setDetailOrigin] = useState<DetailOrigin | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [selectedArtwork, setSelectedArtwork] = useState<{
     memoryId: string;
@@ -83,7 +94,7 @@ export function MemoryHand({ memories }: { memories: readonly Memory[] }) {
   } | null>(null);
   const cardRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const detailScrollRef = useRef<HTMLDivElement | null>(null);
-  const handStageRef = useRef<HTMLDivElement | null>(null);
+  const openingTimerRef = useRef<number | null>(null);
   const readerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -98,6 +109,14 @@ export function MemoryHand({ memories }: { memories: readonly Memory[] }) {
       });
     }
   }, [initialMemoryIndex]);
+
+  useEffect(() => {
+    return () => {
+      if (openingTimerRef.current !== null) {
+        window.clearTimeout(openingTimerRef.current);
+      }
+    };
+  }, []);
 
   const selectedMemory =
     memories[selectedIndex ?? activeIndex] ?? memories[initialMemoryIndex];
@@ -174,8 +193,47 @@ export function MemoryHand({ memories }: { memories: readonly Memory[] }) {
   }
 
   function openMemory(index: number) {
+    const card = cardRefs.current[index];
+    const bounds = card?.getBoundingClientRect();
+    const prefersReducedMotion = window.matchMedia?.(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    if (bounds && bounds.width > 0 && bounds.height > 0) {
+      const isMobile = window.matchMedia?.("(max-width: 767px)").matches;
+      const finalWidth = isMobile
+        ? window.innerWidth
+        : Math.min(window.innerWidth - 24, 1536);
+      const finalHeight = isMobile
+        ? window.innerHeight
+        : Math.min(window.innerHeight - 24, 1120);
+
+      setDetailOrigin({
+        offsetX: bounds.left + bounds.width / 2 - window.innerWidth / 2,
+        offsetY: bounds.top + bounds.height / 2 - window.innerHeight / 2,
+        scaleX: bounds.width / finalWidth,
+        scaleY: bounds.height / finalHeight,
+      });
+    } else {
+      setDetailOrigin(null);
+    }
+
     setActiveIndex(index);
+    setHoveredIndex(index);
+    setOpeningIndex(prefersReducedMotion ? null : index);
     setSelectedIndex(index);
+
+    if (openingTimerRef.current !== null) {
+      window.clearTimeout(openingTimerRef.current);
+      openingTimerRef.current = null;
+    }
+
+    if (!prefersReducedMotion) {
+      openingTimerRef.current = window.setTimeout(() => {
+        setOpeningIndex(null);
+        openingTimerRef.current = null;
+      }, 720);
+    }
   }
 
   function scrollBehavior(): ScrollBehavior {
@@ -219,8 +277,8 @@ export function MemoryHand({ memories }: { memories: readonly Memory[] }) {
     <>
       <div
         className={styles.handStage}
+        onPointerLeave={() => setHoveredIndex(null)}
         onScroll={handleHandScroll}
-        ref={handStageRef}
       >
         <div aria-label="Memory cards" className={styles.handRail} role="group">
           {memories.map((memory, index) => (
@@ -228,13 +286,20 @@ export function MemoryHand({ memories }: { memories: readonly Memory[] }) {
               aria-haspopup="dialog"
               aria-label={`${memory.chapter}: ${memory.title}`}
               className={styles.handCard}
-              data-active={activeIndex === index}
+              data-active={hoveredIndex === index}
+              data-opening={openingIndex === index}
               key={memory.id}
               onClick={() => openMemory(index)}
               onFocus={() => setActiveIndex(index)}
               onKeyDown={(event) => handleCardKeyDown(event, index)}
-              onPointerEnter={() => setActiveIndex(index)}
-              onPointerLeave={resetCardTilt}
+              onPointerEnter={() => {
+                setActiveIndex(index);
+                setHoveredIndex(index);
+              }}
+              onPointerLeave={(event) => {
+                resetCardTilt(event);
+                setHoveredIndex(null);
+              }}
               onPointerMove={handleCardPointerMove}
               ref={(element) => {
                 cardRefs.current[index] = element;
@@ -282,7 +347,14 @@ export function MemoryHand({ memories }: { memories: readonly Memory[] }) {
 
       <Dialog
         onOpenChange={(open) => {
-          if (!open) setSelectedIndex(null);
+          if (!open) {
+            if (openingTimerRef.current !== null) {
+              window.clearTimeout(openingTimerRef.current);
+              openingTimerRef.current = null;
+            }
+            setOpeningIndex(null);
+            setSelectedIndex(null);
+          }
         }}
         open={selectedIndex !== null}
       >
@@ -297,11 +369,19 @@ export function MemoryHand({ memories }: { memories: readonly Memory[] }) {
             if (event.key === "ArrowLeft") moveToMemory(-1);
             if (event.key === "ArrowRight") moveToMemory(1);
           }}
-          overlayClassName="bg-[#020407]/80 duration-500 backdrop-blur-md"
+          overlayClassName={`${openingIndex !== null ? styles.detailOverlayOpening : ""} bg-[#020407]/80 duration-700 backdrop-blur-md`}
           showCloseButton={false}
           style={
             {
               "--detail-wash": `${selectedMemory.tones.glow}18`,
+              ...(detailOrigin
+                ? {
+                    "--detail-origin-offset-x": `${detailOrigin.offsetX}px`,
+                    "--detail-origin-offset-y": `${detailOrigin.offsetY}px`,
+                    "--detail-origin-scale-x": detailOrigin.scaleX,
+                    "--detail-origin-scale-y": detailOrigin.scaleY,
+                  }
+                : {}),
             } as CSSProperties
           }
         >

@@ -8,9 +8,9 @@ import type { MemorySet } from "@/lib/memory";
 
 export function MemoryArchive({ memorySet }: { memorySet: MemorySet }) {
   return (
-    <main className="memory-shell relative isolate min-h-svh overflow-x-hidden overscroll-y-none text-[#e8e4d9]">
+    <main className="memory-shell relative isolate flex min-h-svh flex-col overflow-x-hidden overscroll-y-none text-[#e8e4d9]">
       <div className="memory-aurora" aria-hidden="true" />
-      <header className="relative z-20 mx-auto flex h-[4.75rem] w-full max-w-[94rem] items-center justify-between border-b border-white/8 px-5 sm:px-8 lg:px-12">
+      <header className="relative z-20 mx-auto flex h-[4.75rem] w-full max-w-[94rem] shrink-0 items-center justify-between border-b border-white/8 px-5 sm:px-8 lg:px-12">
         <div className="flex items-center gap-3.5">
           <span
             aria-hidden="true"
@@ -48,15 +48,15 @@ export function MemoryArchive({ memorySet }: { memorySet: MemorySet }) {
         </div>
       </header>
 
-      <section className="relative z-10 mx-auto w-full max-w-[94rem] px-5 pt-8 sm:px-8 sm:pt-12 lg:px-12 lg:pt-14">
-        <div>
+      <section className="relative z-10 mx-auto flex min-h-0 w-full flex-1 flex-col justify-center px-5 py-8 sm:px-8 sm:py-12 lg:px-12 lg:py-14">
+        <div className="w-full">
           {memorySet.memories.length > 0 ? (
             <MemoryHand
               key={memorySet.playerName}
               memories={memorySet.memories}
             />
           ) : (
-            <div className="mx-auto mt-16 max-w-xl border-y border-white/8 px-6 py-12 text-center">
+            <div className="mx-auto max-w-xl border-y border-white/8 px-6 py-12 text-center">
               <SparklesIcon
                 aria-hidden="true"
                 className="mx-auto size-5 text-[#8ad9cb]/65"
