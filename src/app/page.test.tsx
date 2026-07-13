@@ -94,7 +94,26 @@ describe("player memory viewer", () => {
         alt: "A recovered forge scene.",
         width: 1200,
         height: 800,
+        purpose: "hero" as const,
       },
+      images: [
+        {
+          src: "/test/forge.webp",
+          cardSrc: "/test/forge-thumbnail.webp",
+          alt: "A recovered forge scene.",
+          width: 1200,
+          height: 800,
+          purpose: "hero" as const,
+        },
+        {
+          src: "/test/sparks.webp",
+          cardSrc: "/test/sparks-thumbnail.webp",
+          alt: "Sparks crossing the forge.",
+          width: 1200,
+          height: 800,
+          purpose: "attachment" as const,
+        },
+      ],
     };
 
     render(<MemoryHand memories={[illustratedMemory]} />);
@@ -109,6 +128,11 @@ describe("player memory viewer", () => {
         name: illustratedMemory.image.alt,
       }),
     ).toHaveAttribute("src", illustratedMemory.image.src);
+    expect(
+      within(screen.getByRole("dialog")).getByRole("button", {
+        name: "View artwork 2 of 2",
+      }),
+    ).toBeInTheDocument();
   });
 
   it("sanitizes database Markdown before rendering a memory", () => {

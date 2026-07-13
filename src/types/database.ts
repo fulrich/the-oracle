@@ -237,11 +237,13 @@ export type Database = {
       memory_media: {
         Row: {
           alt_text: string;
+          character_id: string;
           created_at: string;
           created_by: string | null;
+          folder: string;
           height: number | null;
           id: string;
-          memory_id: string;
+          memory_id: string | null;
           mime_type: string;
           purpose: Database["public"]["Enums"]["memory_media_purpose"];
           sort_order: number;
@@ -251,11 +253,13 @@ export type Database = {
         };
         Insert: {
           alt_text: string;
+          character_id: string;
           created_at?: string;
           created_by?: string | null;
+          folder?: string;
           height?: number | null;
           id?: string;
-          memory_id: string;
+          memory_id?: string | null;
           mime_type: string;
           purpose: Database["public"]["Enums"]["memory_media_purpose"];
           sort_order?: number;
@@ -265,11 +269,13 @@ export type Database = {
         };
         Update: {
           alt_text?: string;
+          character_id?: string;
           created_at?: string;
           created_by?: string | null;
+          folder?: string;
           height?: number | null;
           id?: string;
-          memory_id?: string;
+          memory_id?: string | null;
           mime_type?: string;
           purpose?: Database["public"]["Enums"]["memory_media_purpose"];
           sort_order?: number;
@@ -278,6 +284,13 @@ export type Database = {
           width?: number | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "memory_media_character_id_fkey";
+            columns: ["character_id"];
+            isOneToOne: false;
+            referencedRelation: "characters";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "memory_media_memory_id_fkey";
             columns: ["memory_id"];

@@ -49,10 +49,3 @@ export function getPublicSiteUrl(): string {
   cachedPublicSiteUrl = new URL(result.data).origin;
   return cachedPublicSiteUrl;
 }
-
-export function isLocalAuthEnabled(): boolean {
-  return (
-    process.env.NODE_ENV === "development" &&
-    process.env.ENABLE_LOCAL_AUTH === "true"
-  );
-}

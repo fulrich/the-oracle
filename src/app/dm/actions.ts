@@ -1,10 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { getAuthState } from "@/lib/auth";
+import { requireAdministrator } from "@/lib/dm-auth.server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 const assignmentSchema = z.object({
@@ -17,19 +17,6 @@ const memoryVisibilitySchema = z.object({
   memoryId: z.uuid(),
   operation: z.enum(["reveal", "hide"]),
 });
-
-async function requireAdministrator() {
-  const authState = await getAuthState();
-  if (authState.status === "anonymous") {
-    redirect("/sign-in");
-  }
-  if (authState.status === "denied") {
-    redirect("/access-denied");
-  }
-  if (authState.viewer.role !== "admin") {
-    notFound();
-  }
-}
 
 export async function assignPlayerToCharacter(formData: FormData) {
   await requireAdministrator();

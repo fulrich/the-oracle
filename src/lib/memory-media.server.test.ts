@@ -2,8 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-import { attachMemoryMedia } from "@/lib/memory-media.server";
 import type { MemorySet } from "@/lib/memory";
+import { attachMemoryMedia } from "@/lib/memory-media.server";
 
 function baseMemorySet(): MemorySet {
   return {
@@ -42,11 +42,30 @@ function baseMemorySet(): MemorySet {
   };
 }
 
+function mediaRow(
+  id: string,
+  purpose: "hero" | "card" | "attachment",
+  sortOrder: number,
+) {
+  return {
+    id,
+    character_id: "20000000-0000-4000-8000-000000000003",
+    memory_id: "33000000-0000-4000-8000-000000000001",
+    storage_object_name: `characters/kaelen/assets/${id}.webp`,
+    folder: "forge",
+    purpose,
+    alt_text: `Image ${sortOrder + 1}`,
+    width: 1600,
+    height: 2000,
+    sort_order: sortOrder,
+    mime_type: "image/webp",
+    created_at: "2026-07-13T00:00:00.000Z",
+  };
+}
+
 function makeSupabase(options: {
   mediaRows?: unknown[];
-  signed?: unknown[];
   mediaError?: unknown;
-  signError?: unknown;
 }) {
   const order = vi.fn().mockResolvedValue({
     data: options.mediaRows ?? [],
@@ -56,106 +75,66 @@ function makeSupabase(options: {
   const select = vi.fn().mockReturnValue({ in: inFn });
   const from = vi.fn().mockReturnValue({ select });
 
-  const createSignedUrls = vi.fn().mockResolvedValue({
-    data: options.signed ?? [],
-    error: options.signError ?? null,
-  });
-  const storageFrom = vi.fn().mockReturnValue({ createSignedUrls });
-
   return {
     client: {
       from,
-      storage: { from: storageFrom },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any,
     from,
-    inFn,
-    createSignedUrls,
-    storageFrom,
   };
 }
 
 describe("attachMemoryMedia", () => {
-  it("upgrades memories with authorized hero media to signed artwork", async () => {
-    const { client, createSignedUrls } = makeSupabase({
-      mediaRows: [
-        {
-          memory_id: "33000000-0000-4000-8000-000000000001",
-          storage_object_name: "33000000-0000-4000-8000-000000000001/hero.webp",
-          purpose: "hero",
-          alt_text: "The molten forge",
-          width: 1600,
-          height: 2000,
-          sort_order: 0,
-        },
-      ],
-      signed: [
-        {
-          path: "33000000-0000-4000-8000-000000000001/hero.webp",
-          signedUrl: "https://example.test/signed/forge.webp?token=abc",
-          error: null,
-        },
-      ],
-    });
+  it("resolves multiple authorized assets through the access-checked media route", async () => {
+    const hero = mediaRow("49000000-0000-4000-8000-000000000001", "hero", 0);
+    const attachment = mediaRow(
+      "49000000-0000-4000-8000-000000000002",
+      "attachment",
+      1,
+    );
+    const { client } = makeSupabase({ mediaRows: [hero, attachment] });
 
     const result = await attachMemoryMedia(client, baseMemorySet());
 
-    expect(createSignedUrls).toHaveBeenCalledWith(
-      ["33000000-0000-4000-8000-000000000001/hero.webp"],
-      expect.any(Number),
-    );
     expect(result.memories[0]).toMatchObject({
       visualState: "artwork",
       image: {
-        src: "https://example.test/signed/forge.webp?token=abc",
-        cardSrc: "https://example.test/signed/forge.webp?token=abc",
-        alt: "The molten forge",
-        width: 1600,
-        height: 2000,
+        src: "/api/memory-media/49000000-0000-4000-8000-000000000001",
+        cardSrc: "/api/memory-media/49000000-0000-4000-8000-000000000001",
+        alt: "Image 1",
+        purpose: "hero",
       },
+      images: [
+        {
+          src: "/api/memory-media/49000000-0000-4000-8000-000000000001",
+        },
+        {
+          src: "/api/memory-media/49000000-0000-4000-8000-000000000002",
+          purpose: "attachment",
+        },
+      ],
     });
-    // The second memory has no media and keeps its placeholder.
     expect(result.memories[1].visualState).toBe("placeholder");
-    expect(result.memories[1].image).toBeUndefined();
   });
 
-  it("keeps placeholders when no media rows exist and never signs", async () => {
-    const { client, createSignedUrls } = makeSupabase({ mediaRows: [] });
+  it("keeps placeholders when no media rows exist", async () => {
+    const { client } = makeSupabase({ mediaRows: [] });
 
     const result = await attachMemoryMedia(client, baseMemorySet());
 
-    expect(createSignedUrls).not.toHaveBeenCalled();
     expect(result.memories.every((m) => m.visualState === "placeholder")).toBe(
       true,
     );
   });
 
-  it("skips a memory when its object could not be signed", async () => {
+  it("surfaces media metadata query failures", async () => {
     const { client } = makeSupabase({
-      mediaRows: [
-        {
-          memory_id: "33000000-0000-4000-8000-000000000001",
-          storage_object_name: "33000000-0000-4000-8000-000000000001/hero.webp",
-          purpose: "hero",
-          alt_text: "The molten forge",
-          width: null,
-          height: null,
-          sort_order: 0,
-        },
-      ],
-      signed: [
-        {
-          path: "33000000-0000-4000-8000-000000000001/hero.webp",
-          signedUrl: "",
-          error: "Object not found",
-        },
-      ],
+      mediaError: new Error("database unavailable"),
     });
 
-    const result = await attachMemoryMedia(client, baseMemorySet());
-
-    expect(result.memories[0].visualState).toBe("placeholder");
-    expect(result.memories[0].image).toBeUndefined();
+    await expect(attachMemoryMedia(client, baseMemorySet())).rejects.toThrow(
+      "Unable to load memory media.",
+    );
   });
 
   it("does not query when the set has no memories", async () => {

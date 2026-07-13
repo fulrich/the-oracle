@@ -84,6 +84,14 @@ export function archiveRowsToMemorySet(
   };
 }
 
+export async function resolveMemorySet(
+  supabase: Parameters<typeof attachMemoryMedia>[0],
+  character: CharacterIdentity,
+  rows: readonly ArchiveRow[],
+): Promise<MemorySet> {
+  return attachMemoryMedia(supabase, archiveRowsToMemorySet(character, rows));
+}
+
 export type PlayerArchiveResult =
   { status: "unassigned" } | { status: "ready"; memorySet: MemorySet };
 
@@ -104,9 +112,8 @@ export async function loadPlayerMemoryArchive(
     throw new Error("Unable to load the memory archive.");
   }
 
-  const memorySet = archiveRowsToMemorySet(viewer.character, data);
   return {
     status: "ready",
-    memorySet: await attachMemoryMedia(supabase, memorySet),
+    memorySet: await resolveMemorySet(supabase, viewer.character, data),
   };
 }

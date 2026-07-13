@@ -965,15 +965,6 @@ grant select, insert, delete on public.memory_reveals to authenticated;
 grant select, insert, update, delete on public.memory_media to authenticated;
 grant select on public.admin_audit_events to authenticated;
 
--- The service role is reachable only by trusted operator tooling (for example the
--- reviewed media import script). Its key is never shipped to the browser or used
--- by the application runtime, which authenticates as individual users. Grant it
--- the minimal privileges required to provision reviewed memory artwork. The
--- service role bypasses RLS, so no policies are needed for it.
-grant usage on type public.memory_media_purpose to service_role;
-grant select on public.characters to service_role;
-grant select on public.memories to service_role;
-grant select, insert, update, delete on public.memory_media to service_role;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (

@@ -1,6 +1,15 @@
 export type MemoryArtworkKind =
   "threshold" | "cavern" | "orchard" | "portrait" | "wind" | "lantern";
 
+export type MemoryImage = {
+  src: string;
+  cardSrc: string;
+  alt: string;
+  width: number;
+  height: number;
+  purpose: "hero" | "card" | "attachment";
+};
+
 export type Memory = {
   id: string;
   chapter: string;
@@ -13,13 +22,8 @@ export type Memory = {
   artwork: MemoryArtworkKind;
   artworkAlt: string;
   visualState?: "artwork" | "placeholder";
-  image?: {
-    src: string;
-    cardSrc: string;
-    alt: string;
-    width: number;
-    height: number;
-  };
+  image?: MemoryImage;
+  images?: readonly MemoryImage[];
   tones: {
     night: string;
     middle: string;

@@ -16,7 +16,7 @@ The local stack is only a development environment. Before connecting a hosted Su
 1. Configure Google as the only player-facing signup provider. The Google OAuth client's authorized redirect URI is Supabase Auth's callback URL (`https://<project-ref>.supabase.co/auth/v1/callback`).
 2. Keep email/password signup disabled. Local password users are seeded directly and exist only for development testing.
 3. Add the exact application callback (`https://<application-origin>/auth/callback`) to Supabase Auth's redirect allowlist.
-4. Set `NEXT_PUBLIC_SITE_URL` to the exact Vercel HTTPS origin. Never set `ENABLE_LOCAL_AUTH=true` in a hosted environment.
+4. Set `NEXT_PUBLIC_SITE_URL` to the exact Vercel HTTPS origin. Do not configure local password authentication in a hosted environment.
 5. Push or reproduce the Before User Created hook configuration from `supabase/config.toml`:
    - URI: `pg-functions://postgres/app_private/before_user_created`
    - The hook accepts only active, exact-email allowlist entries using Google identity metadata.
@@ -39,19 +39,11 @@ Linked allowlist emails are intentionally immutable. Disable an account to revok
 
 ## Memory artwork
 
-Memory artwork lives in the private `memory-media` Storage bucket, never in Git or the Next.js build. The application reads it through short-lived signed URLs authorized by RLS; only a player's revealed memories can be signed.
+Memory artwork lives in the private `memory-media` Storage bucket, never in Git or the Next.js build. The application serves it through an authenticated same-origin media route that checks RLS on every request, so hiding a memory blocks its media on the next request.
 
-Provision reviewed, player-safe artwork with the operator script. It requires the hosted project URL and the **secret** service key, which must never be committed, exposed to the browser, or placed in a `NEXT_PUBLIC_*` variable:
+Use **DM administration → Media library** to upload reviewed, player-safe images. The authenticated DM session uploads directly to private Storage through the normal publishable client; no service-role key is used by the application. Each upload receives an opaque server-generated object name, so filenames are not metadata. Choose the character and a folder/category, add useful image descriptions, and optionally attach the asset to a published memory. Unattached assets are visible only to administrators. Existing assets can be attached, moved between folders, re-ordered, or removed from the same library.
 
-```bash
-SUPABASE_URL=https://<project-ref>.supabase.co \
-SUPABASE_SERVICE_ROLE_KEY=<secret-key> \
-  node scripts/import-memory-media.mjs \
-    --character kaelen-ironheart \
-    --source <path-to-reviewed-art>/kaelen-ironheart/memories
-```
-
-Files must be named `memory-01.webp`, `memory-02.webp`, ... matching each memory's campaign position. Each is uploaded to `<memory_id>/hero.webp` and registered as that memory's `hero` image. Re-running is idempotent. Use `--dry-run` to preview the mapping without uploading. Only import art that has been reviewed as player-safe; the source art directory stays external to this repository.
+The media model supports multiple assets per memory. `hero` is the primary cover artwork, `card` is an optional card crop, and `attachment` stores supporting images. Player access still inherits the parent memory's publication, reveal, assignment, and active-user checks; hiding or revoking a memory makes its media unavailable immediately.
 
 ## Authorization verification
 
@@ -64,6 +56,6 @@ Before inviting players, verify in the hosted environment that:
 - revocation removes prose and media access;
 - DM character preview applies the same publication and reveal gates as the player viewer;
 - the `memory-media` bucket remains private;
-- short-lived media URLs and responses are not publicly cached.
+- the media route returns private, non-cacheable responses and a hidden memory's media returns 404.
 
 Never expose the service-role or secret key to browser code. Ordinary player and DM operations should use the authenticated session plus RLS.

@@ -78,6 +78,10 @@ export function MemoryHand({ memories }: { memories: readonly Memory[] }) {
   const initialMemoryIndex = Math.floor((memories.length - 1) / 2);
   const [activeIndex, setActiveIndex] = useState(initialMemoryIndex);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [selectedArtwork, setSelectedArtwork] = useState<{
+    memoryId: string;
+    index: number;
+  } | null>(null);
   const cardRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const detailScrollRef = useRef<HTMLDivElement | null>(null);
   const handStageRef = useRef<HTMLDivElement | null>(null);
@@ -98,6 +102,11 @@ export function MemoryHand({ memories }: { memories: readonly Memory[] }) {
 
   const selectedMemory =
     memories[selectedIndex ?? activeIndex] ?? memories[initialMemoryIndex];
+  const selectedImages = selectedMemory.images ?? [];
+  const selectedImageIndex =
+    selectedArtwork?.memoryId === selectedMemory.id ? selectedArtwork.index : 0;
+  const selectedImage =
+    selectedImages[selectedImageIndex] ?? selectedMemory.image;
 
   function focusCard(index: number) {
     const boundedIndex = Math.min(memories.length - 1, Math.max(0, index));
@@ -360,29 +369,57 @@ export function MemoryHand({ memories }: { memories: readonly Memory[] }) {
             <article>
               <div className="grid min-h-[calc(100svh-5.5rem)] lg:grid-cols-[minmax(0,1.18fr)_minmax(27rem,0.82fr)]">
                 <figure className={styles.detailHeroArtwork}>
-                  {selectedMemory.image ? (
+                  {selectedImage ? (
                     <Image
-                      alt={selectedMemory.image.alt}
+                      alt={selectedImage.alt}
                       className="object-cover"
                       fill
                       sizes="(min-width: 1024px) 59vw, 100vw"
-                      src={selectedMemory.image.src}
+                      src={selectedImage.src}
                       unoptimized
                     />
                   ) : (
                     <MemoryArtwork memory={selectedMemory} />
                   )}
+                  {selectedImages.length > 1 ? (
+                    <div className="absolute top-6 right-6 z-10 flex max-w-[calc(100%-3rem)] gap-2 overflow-x-auto rounded-sm bg-black/35 p-2 backdrop-blur-sm sm:top-8 sm:right-9">
+                      {selectedImages.map((image, index) => (
+                        <button
+                          aria-label={`View artwork ${index + 1} of ${selectedImages.length}`}
+                          className={`relative size-12 shrink-0 overflow-hidden border transition focus-visible:ring-2 focus-visible:ring-[#8ad9cb] ${index === selectedImageIndex ? "border-[#c9eee5]" : "border-white/25 opacity-65 hover:opacity-100"}`}
+                          key={`${image.src}-${index}`}
+                          onClick={() =>
+                            setSelectedArtwork({
+                              memoryId: selectedMemory.id,
+                              index,
+                            })
+                          }
+                          type="button"
+                        >
+                          <Image
+                            alt=""
+                            aria-hidden="true"
+                            className="object-cover"
+                            fill
+                            sizes="3rem"
+                            src={image.cardSrc}
+                            unoptimized
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
                   <figcaption className="absolute right-6 bottom-6 left-6 z-10 flex items-end justify-between gap-6 text-[0.6rem] tracking-[0.16em] text-white/52 uppercase sm:right-9 sm:bottom-8 sm:left-9">
                     <span>
-                      {selectedMemory.image
+                      {selectedImage
                         ? "Recovered impression"
                         : selectedMemory.visualState === "placeholder"
                           ? "Ambient memory study"
                           : "Recovered impression"}
                     </span>
                     <span>
-                      {selectedMemory.image
-                        ? "Image 01"
+                      {selectedImage
+                        ? `Image ${String(selectedImageIndex + 1).padStart(2, "0")}`
                         : selectedMemory.visualState === "placeholder"
                           ? "Image pending"
                           : "Image 01"}
@@ -456,14 +493,14 @@ export function MemoryHand({ memories }: { memories: readonly Memory[] }) {
                         type="button"
                       >
                         <span className="relative block aspect-[3/2] overflow-hidden border border-white/10 bg-[#0a1018]">
-                          {selectedMemory.image ? (
+                          {selectedImage ? (
                             <Image
                               alt=""
                               aria-hidden="true"
                               className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                               fill
                               sizes="16rem"
-                              src={selectedMemory.image.cardSrc}
+                              src={selectedImage.cardSrc}
                               unoptimized
                             />
                           ) : (

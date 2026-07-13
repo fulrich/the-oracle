@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(36);
+select plan(39);
 
 select has_schema('app_private', 'private authorization schema exists');
 select has_table('public', 'allowed_users', 'allowed_users table exists');
@@ -13,6 +13,28 @@ select has_table('public', 'memories', 'memories table exists');
 select has_table('public', 'memory_reveals', 'memory_reveals table exists');
 select has_table('public', 'memory_media', 'memory_media table exists');
 select has_table('public', 'admin_audit_events', 'admin_audit_events table exists');
+select has_column(
+  'public',
+  'memory_media',
+  'character_id',
+  'media assets are scoped to a character'
+);
+select has_column(
+  'public',
+  'memory_media',
+  'folder',
+  'media assets support logical folders'
+);
+select ok(
+  (
+    select is_nullable = 'YES'
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'memory_media'
+      and column_name = 'memory_id'
+  ),
+  'media assets may remain unattached'
+);
 
 select ok(
   (

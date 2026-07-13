@@ -1,0 +1,121 @@
+import "server-only";
+
+import type { CharacterIdentity } from "@/lib/auth";
+import type { MemoryMediaRow } from "@/lib/memory-media.server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+
+export type DmMediaMemoryOption = {
+  id: string;
+  position: number;
+  title: string;
+};
+
+export type DmMediaCharacterOption = CharacterIdentity & {
+  memories: DmMediaMemoryOption[];
+};
+
+export type DmMediaAsset = Pick<
+  MemoryMediaRow,
+  | "id"
+  | "character_id"
+  | "memory_id"
+  | "folder"
+  | "purpose"
+  | "alt_text"
+  | "width"
+  | "height"
+  | "sort_order"
+  | "mime_type"
+  | "created_at"
+> & {
+  previewUrl: string;
+};
+
+export type DmMediaLibrary = {
+  selectedCharacterId: string;
+  characters: DmMediaCharacterOption[];
+  assets: DmMediaAsset[];
+};
+
+const mediaColumns =
+  "id, character_id, memory_id, storage_object_name, folder, purpose, alt_text, width, height, sort_order, mime_type, created_at";
+
+export async function loadDmMediaLibrary(
+  requestedCharacterId?: string,
+): Promise<DmMediaLibrary> {
+  const supabase = await createServerSupabaseClient();
+  const { data: characterRows, error: characterError } = await supabase
+    .from("characters")
+    .select("id, slug, display_name, initials, subtitle, archive_note")
+    .order("display_name");
+
+  if (characterError) {
+    throw new Error("Unable to load media characters.");
+  }
+
+  const characters = await Promise.all(
+    characterRows.map(async (character) => {
+      const { data: memories, error: memoryError } = await supabase
+        .from("memories")
+        .select("id, position, title")
+        .eq("character_id", character.id)
+        .eq("publication_status", "published")
+        .order("position");
+
+      if (memoryError) {
+        throw new Error("Unable to load media memories.");
+      }
+
+      return {
+        id: character.id,
+        slug: character.slug,
+        displayName: character.display_name,
+        initials: character.initials,
+        subtitle: character.subtitle,
+        archiveNote: character.archive_note,
+        memories: memories.map((memory) => ({
+          id: memory.id,
+          position: memory.position,
+          title: memory.title,
+        })),
+      } satisfies DmMediaCharacterOption;
+    }),
+  );
+
+  const selectedCharacterId = characters.some(
+    (character) => character.id === requestedCharacterId,
+  )
+    ? requestedCharacterId!
+    : characters[0]?.id;
+
+  if (!selectedCharacterId) {
+    return { selectedCharacterId: "", characters, assets: [] };
+  }
+
+  const { data: mediaRows, error: mediaError } = await supabase
+    .from("memory_media")
+    .select(mediaColumns)
+    .eq("character_id", selectedCharacterId)
+    .order("created_at", { ascending: false });
+
+  if (mediaError) {
+    throw new Error("Unable to load the media library.");
+  }
+
+  const assets = mediaRows.map((row) => ({
+    id: row.id,
+    character_id: row.character_id,
+    memory_id: row.memory_id,
+    folder: row.folder,
+    purpose: row.purpose,
+    alt_text: row.alt_text,
+    width: row.width,
+    height: row.height,
+    sort_order: row.sort_order,
+    mime_type: row.mime_type,
+    created_at: row.created_at,
+    previewUrl: `/api/memory-media/${row.id}`,
+  }));
+
+  return { selectedCharacterId, characters, assets };
+}

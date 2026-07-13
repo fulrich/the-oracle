@@ -88,7 +88,7 @@ Next.js is selected because this is not only a frontend. Trusted server executio
 - OAuth callbacks and session handling;
 - continuous allowlist enforcement;
 - administrative mutations;
-- short-lived private media URLs or authenticated media proxying;
+- authenticated media proxying that re-checks access for every request;
 - server-controlled prompt assembly;
 - transient use of player-provided OpenAI keys;
 - OpenAI image requests;
@@ -231,12 +231,7 @@ All exposed tables must have RLS enabled and tested. Administrative UI checks ar
 
 Memories, restricted handouts, reference images, and generated art belong in private Storage buckets. Do not place restricted media in Next.js `public/`, public buckets, or predictable public CDN locations.
 
-Serve media by either:
-
-1. authorizing the content and issuing a very short-lived signed URL; or
-2. proxying it through an authenticated route that checks access on every request.
-
-Signed URLs remain usable until expiry even after a grant is revoked. Keep their lifetime short and prevent public caching of protected content.
+This release proxies media through an authenticated same-origin route that checks the parent memory through RLS on every request. The route returns private, non-cacheable responses. Signed URLs are intentionally not used for player media because they remain usable until expiry after a grant is revoked.
 
 Database backups do not automatically back up Storage objects. Production planning must include a separate object export, replication, or recovery policy.
 

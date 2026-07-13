@@ -41,23 +41,11 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<local public key>
 NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3000
 SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET=<local Google OAuth client secret>
 LOCAL_DM_EMAIL=<exact local Google email for the DM>
-ENABLE_LOCAL_AUTH=true
 ```
 
 Never put a Supabase service-role or other privileged key in a `NEXT_PUBLIC_` variable.
 
-The migrations contain the reviewed campaign memories for Aelarion, Dain, Kaelen, and Telestra; the vault currently has no Vaelin memory file. All production memories begin hidden. The local seed creates synthetic email/password users and reveals one approved memory to each assigned player for authorization testing. `ENABLE_LOCAL_AUTH=true` exposes their development-only account selector; it has no effect outside `NODE_ENV=development`. Their shared server-only password is `local-oracle-password`:
-
-| Email                     | Expected access                                 |
-| ------------------------- | ----------------------------------------------- |
-| `dm@example.test`         | Administrator                                   |
-| `player.one@example.test` | Kaelen Ironheart and one revealed memory        |
-| `player.two@example.test` | Telestra Thornveil and one revealed memory      |
-| `disabled@example.test`   | Authenticates, but application access is denied |
-
-`pending@example.test` is an active allowlist row without an Auth identity. It exists to verify that browser email/password signup is rejected even for an invited address; production identity is Google OAuth only.
-
-Open [http://127.0.0.1:3000](http://127.0.0.1:3000) and choose a synthetic identity under **Local test identities**. Player accounts open their database-backed archives, the DM opens `/dm`, and the disabled identity reaches the access-denied state. `/api/health` remains public, but application pages require Supabase.
+The migrations contain the reviewed campaign memories for Aelarion, Dain, Kaelen, and Telestra; the vault currently has no Vaelin memory file. All production memories begin hidden. The local seed retains synthetic Auth rows only as database/RLS fixtures; the application has no local password-login surface. Use the configured Google flow for a signed-in local session, then use `/dm` and character preview to inspect the player-facing path. `/api/health` remains public, but application pages require Supabase.
 
 Characters are immutable campaign reference data. The `/dm` landing page assigns one optional player email to each character, links to revealed/hidden memory controls, and opens a read-only character preview even when no email is assigned. Preview never replaces the DM session. The application cannot create, edit, or delete characters. `LOCAL_DM_EMAIL`, when set, restores the local administrator after every `pnpm db:reset`.
 
@@ -100,19 +88,9 @@ Deploy with `pnpm dlx vercel --prod`. Then set the same origin as Supabase Auth'
 
 ## Memory artwork
 
-Memory artwork is stored in the private `memory-media` Supabase Storage bucket, not in Git or the Next.js bundle. The app renders it through short-lived signed URLs that RLS authorizes per request, so a player only ever loads art for their own revealed memories; memories without art keep an abstract placeholder.
+Memory artwork is stored in the private `memory-media` Supabase Storage bucket, not in Git or the Next.js bundle. The app serves it through an authenticated same-origin media route that checks RLS on every request, so a player only ever loads art for their own revealed memories; memories without art keep an abstract placeholder.
 
-Reviewed, player-safe art is uploaded with an operator script (never part of the app runtime). It needs the project URL and the **secret** service key — never commit that key or expose it to the browser. For the local stack, read both from `pnpm exec supabase status`:
-
-```bash
-SUPABASE_URL=http://127.0.0.1:54321 \
-SUPABASE_SERVICE_ROLE_KEY=<local-secret-key> \
-  node scripts/import-memory-media.mjs \
-    --character kaelen-ironheart \
-    --source <path-to-reviewed-art>/kaelen-ironheart/memories
-```
-
-Files must be named `memory-01.webp`, `memory-02.webp`, ... to match each memory's campaign position. `pnpm db:reset` clears imported media, so re-run the script afterward. See [`docs/supabase-deployment.md`](docs/supabase-deployment.md) for the hosted procedure.
+DMs upload reviewed, player-safe artwork from **DM administration → Media library**. The library accepts drag-and-drop images without relying on filenames. Choose a character, enter a folder or category, describe each image, and optionally attach it to a memory. Assets can remain unattached until the relevant memory is ready. No service-role key or manual filesystem import is required.
 
 ## Architecture
 

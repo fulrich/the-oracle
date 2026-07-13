@@ -4,6 +4,7 @@ import {
   ArrowLeftIcon,
   EyeIcon,
   EyeOffIcon,
+  ImageIcon,
   LogOutIcon,
   ShieldCheckIcon,
 } from "lucide-react";
@@ -105,13 +106,22 @@ export default async function DmCharacterMemoriesPage({
               </h1>
             </div>
           </div>
-          <Link
-            className="flex items-center justify-center gap-2 border border-white/10 px-4 py-2.5 text-[0.62rem] tracking-[0.1em] text-[#aeb6b5] uppercase hover:border-[#8ad9cb]/35 hover:text-[#c9ebe4] focus-visible:ring-2 focus-visible:ring-[#8ad9cb]/65"
-            href={`/dm/preview/${archive.character.id}`}
-          >
-            <EyeIcon aria-hidden="true" className="size-3.5" />
-            Preview character
-          </Link>
+          <div className="flex flex-wrap justify-end gap-2">
+            <Link
+              className="flex items-center justify-center gap-2 border border-[#c6a979]/25 bg-[#c6a979]/5 px-4 py-2.5 text-[0.62rem] tracking-[0.1em] text-[#d9c8a9] uppercase hover:border-[#c6a979]/45 hover:bg-[#c6a979]/9 focus-visible:ring-2 focus-visible:ring-[#8ad9cb]/65"
+              href={`/dm/media?characterId=${archive.character.id}`}
+            >
+              <ImageIcon aria-hidden="true" className="size-3.5" />
+              Media library
+            </Link>
+            <Link
+              className="flex items-center justify-center gap-2 border border-white/10 px-4 py-2.5 text-[0.62rem] tracking-[0.1em] text-[#aeb6b5] uppercase hover:border-[#8ad9cb]/35 hover:text-[#c9ebe4] focus-visible:ring-2 focus-visible:ring-[#8ad9cb]/65"
+              href={`/dm/preview/${archive.character.id}`}
+            >
+              <EyeIcon aria-hidden="true" className="size-3.5" />
+              Preview character
+            </Link>
+          </div>
         </div>
 
         {query.error ? (

@@ -3,6 +3,7 @@ import Link from "next/link";
 import {
   BookOpenTextIcon,
   EyeIcon,
+  ImageIcon,
   LogOutIcon,
   ShieldCheckIcon,
 } from "lucide-react";
@@ -61,6 +62,13 @@ export default async function DmPage({
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Link
+              className="flex items-center gap-2 border border-white/10 px-3 py-2 text-xs text-[#9ba1a2] hover:border-[#8ad9cb]/35 hover:text-white focus-visible:ring-2 focus-visible:ring-[#8ad9cb]/65"
+              href="/dm/media"
+            >
+              <ImageIcon aria-hidden="true" className="size-3.5" />
+              Media library
+            </Link>
             <form action={signOut}>
               <button
                 className="flex items-center gap-2 border border-white/10 px-3 py-2 text-xs text-[#9ba1a2] hover:border-white/20 hover:text-white focus-visible:ring-2 focus-visible:ring-[#8ad9cb]/65"
