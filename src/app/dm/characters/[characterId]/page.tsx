@@ -186,34 +186,42 @@ export default async function DmCharacterMemoriesPage({
                   </p>
                 </div>
 
-                <form action={setMemoryVisibility}>
-                  <input
-                    name="characterId"
-                    type="hidden"
-                    value={archive.character.id}
-                  />
-                  <input name="memoryId" type="hidden" value={memory.id} />
-                  <input
-                    name="operation"
-                    type="hidden"
-                    value={memory.revealed ? "hide" : "reveal"}
-                  />
-                  <button
-                    className={
-                      memory.revealed
-                        ? "flex w-full items-center justify-center gap-2 border border-white/10 px-4 py-2.5 text-[0.6rem] tracking-[0.1em] text-[#90999a] uppercase hover:border-[#c78779]/35 hover:text-[#ddb0a7] focus-visible:ring-2 focus-visible:ring-[#8ad9cb]/65 sm:w-auto"
-                        : "flex w-full items-center justify-center gap-2 border border-[#8ad9cb]/25 bg-[#8ad9cb]/7 px-4 py-2.5 text-[0.6rem] tracking-[0.1em] text-[#c7e6e0] uppercase hover:border-[#8ad9cb]/45 hover:bg-[#8ad9cb]/10 focus-visible:ring-2 focus-visible:ring-[#8ad9cb]/65 sm:w-auto"
-                    }
-                    type="submit"
+                <div className="flex flex-col gap-2 sm:min-w-40">
+                  <Link
+                    className="flex items-center justify-center border border-[#c6a979]/25 bg-[#c6a979]/5 px-4 py-2.5 text-[0.6rem] tracking-[0.1em] text-[#d9c8a9] uppercase hover:border-[#c6a979]/45 hover:bg-[#c6a979]/9 focus-visible:ring-2 focus-visible:ring-[#8ad9cb]/65"
+                    href={`/dm/characters/${archive.character.id}/memories/${memory.id}`}
                   >
-                    {memory.revealed ? (
-                      <EyeOffIcon aria-hidden="true" className="size-3.5" />
-                    ) : (
-                      <EyeIcon aria-hidden="true" className="size-3.5" />
-                    )}
-                    {memory.revealed ? "Hide" : "Reveal"}
-                  </button>
-                </form>
+                    Open memory
+                  </Link>
+                  <form action={setMemoryVisibility}>
+                    <input
+                      name="characterId"
+                      type="hidden"
+                      value={archive.character.id}
+                    />
+                    <input name="memoryId" type="hidden" value={memory.id} />
+                    <input
+                      name="operation"
+                      type="hidden"
+                      value={memory.revealed ? "hide" : "reveal"}
+                    />
+                    <button
+                      className={
+                        memory.revealed
+                          ? "flex w-full items-center justify-center gap-2 border border-white/10 px-4 py-2.5 text-[0.6rem] tracking-[0.1em] text-[#90999a] uppercase hover:border-[#c78779]/35 hover:text-[#ddb0a7] focus-visible:ring-2 focus-visible:ring-[#8ad9cb]/65"
+                          : "flex w-full items-center justify-center gap-2 border border-[#8ad9cb]/25 bg-[#8ad9cb]/7 px-4 py-2.5 text-[0.6rem] tracking-[0.1em] text-[#c7e6e0] uppercase hover:border-[#8ad9cb]/45 hover:bg-[#8ad9cb]/10 focus-visible:ring-2 focus-visible:ring-[#8ad9cb]/65"
+                      }
+                      type="submit"
+                    >
+                      {memory.revealed ? (
+                        <EyeOffIcon aria-hidden="true" className="size-3.5" />
+                      ) : (
+                        <EyeIcon aria-hidden="true" className="size-3.5" />
+                      )}
+                      {memory.revealed ? "Hide" : "Reveal"}
+                    </button>
+                  </form>
+                </div>
               </article>
             ))}
           </section>

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 
@@ -73,9 +74,6 @@ export function DmMediaLibrary({
     (character) => character.id === selectedCharacterId,
   );
   const [folder, setFolder] = useState("uncategorized");
-  const [memoryId, setMemoryId] = useState("");
-  const [purpose, setPurpose] =
-    useState<keyof typeof purposeLabels>("attachment");
   const [drafts, setDrafts] = useState<UploadDraft[]>([]);
   const [folderFilter, setFolderFilter] = useState("all");
   const [dropActive, setDropActive] = useState(false);
@@ -152,7 +150,7 @@ export function DmMediaLibrary({
     let uploaded = 0;
 
     try {
-      for (const [index, draft] of drafts.entries()) {
+      for (const draft of drafts) {
         const prepared = await prepareMediaUpload({
           characterId: selectedCharacter.id,
           mimeType: draft.file.type,
@@ -179,12 +177,12 @@ export function DmMediaLibrary({
           storageObjectName: prepared.storageObjectName,
           mimeType: draft.file.type,
           folder: folder.trim() || "uncategorized",
-          memoryId: memoryId || null,
-          purpose: memoryId ? purpose : "attachment",
+          memoryId: null,
+          purpose: "attachment",
           altText: draft.altText.trim(),
           width: dimensions.width,
           height: dimensions.height,
-          sortOrder: index,
+          sortOrder: 0,
         });
 
         if (!result.ok) {
@@ -200,7 +198,7 @@ export function DmMediaLibrary({
       setDrafts([]);
       setMessage({
         kind: "success",
-        text: `${uploaded} image${uploaded === 1 ? "" : "s"} added to the library.`,
+        text: `${uploaded} image${uploaded === 1 ? "" : "s"} added to the library. Attach them from a memory page.`,
       });
       router.refresh();
     } catch (error) {
@@ -231,8 +229,8 @@ export function DmMediaLibrary({
             Drop artwork
           </h2>
           <p className="mt-2 text-sm leading-6 text-[#7f898d]">
-            Names do not matter. Choose where each image belongs, then attach it
-            to a memory now or later.
+            Names do not matter. Organize images here first, then attach them to
+            a specific memory from memory management.
           </p>
 
           <div className="mt-6 grid gap-4">
@@ -260,43 +258,6 @@ export function DmMediaLibrary({
                 placeholder="e.g. forge, portrait studies"
                 value={folder}
               />
-            </label>
-
-            <label className="grid gap-2 text-[0.62rem] tracking-[0.1em] text-[#899397] uppercase">
-              Attach to memory (optional)
-              <select
-                className="border border-white/10 bg-[#0b0e14] px-3 py-2.5 text-sm tracking-normal text-[#d9dbd5] normal-case focus:border-[#8ad9cb]/45 focus:ring-2 focus:ring-[#8ad9cb]/20 focus:outline-none"
-                onChange={(event) => {
-                  setMemoryId(event.target.value);
-                  if (!event.target.value) setPurpose("attachment");
-                }}
-                value={memoryId}
-              >
-                <option value="">Keep unattached for now</option>
-                {selectedCharacter.memories.map((memory) => (
-                  <option key={memory.id} value={memory.id}>
-                    {String(memory.position).padStart(2, "0")} · {memory.title}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="grid gap-2 text-[0.62rem] tracking-[0.1em] text-[#899397] uppercase">
-              Image role
-              <select
-                className="border border-white/10 bg-[#0b0e14] px-3 py-2.5 text-sm tracking-normal text-[#d9dbd5] normal-case focus:border-[#8ad9cb]/45 focus:ring-2 focus:ring-[#8ad9cb]/20 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={!memoryId}
-                onChange={(event) =>
-                  setPurpose(event.target.value as keyof typeof purposeLabels)
-                }
-                value={memoryId ? purpose : "attachment"}
-              >
-                {Object.entries(purposeLabels).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
             </label>
           </div>
 
@@ -462,12 +423,7 @@ function MediaAssetCard({
   onChanged: () => void;
 }) {
   const [folder, setFolder] = useState(asset.folder);
-  const [memoryId, setMemoryId] = useState(asset.memory_id ?? "");
-  const [purpose, setPurpose] = useState<keyof typeof purposeLabels>(
-    asset.purpose,
-  );
   const [altText, setAltText] = useState(asset.alt_text);
-  const [sortOrder, setSortOrder] = useState(String(asset.sort_order));
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -477,10 +433,7 @@ function MediaAssetCard({
     const result = await updateMediaAsset({
       assetId: asset.id,
       folder,
-      memoryId: memoryId || null,
-      purpose: memoryId ? purpose : "attachment",
       altText,
-      sortOrder: Number.parseInt(sortOrder, 10) || 0,
     });
     setBusy(false);
     if (!result.ok) {
@@ -516,11 +469,25 @@ function MediaAssetCard({
           unoptimized
         />
         <span className="absolute top-2 left-2 bg-[#090d13]/80 px-2 py-1 font-mono text-[0.5rem] tracking-[0.1em] text-[#b5c0bd] uppercase">
-          {purposeLabels[purpose]}
+          {purposeLabels[asset.purpose]}
         </span>
       </div>
 
       <div className="mt-3 grid gap-3">
+        <p className="text-xs text-[#858f92]">
+          {asset.memory_id ? (
+            <Link
+              className="text-[#b9ddd6] underline underline-offset-4 hover:text-white"
+              href={`/dm/characters/${character.id}/memories/${asset.memory_id}`}
+            >
+              Attached to memory{" "}
+              {String(asset.memoryPosition ?? "").padStart(2, "0")} ·{" "}
+              {asset.memoryTitle}
+            </Link>
+          ) : (
+            "Unattached — choose a memory to attach it."
+          )}
+        </p>
         <label className="grid gap-1 text-[0.56rem] tracking-[0.08em] text-[#7f898d] uppercase">
           Folder
           <input
@@ -530,53 +497,6 @@ function MediaAssetCard({
             value={folder}
           />
         </label>
-        <label className="grid gap-1 text-[0.56rem] tracking-[0.08em] text-[#7f898d] uppercase">
-          Attached memory
-          <select
-            className="border border-white/10 bg-[#0b0e14] px-2.5 py-2 text-xs tracking-normal text-[#d9dbd5] normal-case focus:border-[#8ad9cb]/45 focus:outline-none"
-            onChange={(event) => {
-              setMemoryId(event.target.value);
-              if (!event.target.value) setPurpose("attachment");
-            }}
-            value={memoryId}
-          >
-            <option value="">Unattached</option>
-            {character.memories.map((memory) => (
-              <option key={memory.id} value={memory.id}>
-                {String(memory.position).padStart(2, "0")} · {memory.title}
-              </option>
-            ))}
-          </select>
-        </label>
-        <div className="grid grid-cols-[minmax(0,1fr)_5rem] gap-2">
-          <label className="grid gap-1 text-[0.56rem] tracking-[0.08em] text-[#7f898d] uppercase">
-            Role
-            <select
-              className="border border-white/10 bg-[#0b0e14] px-2.5 py-2 text-xs tracking-normal text-[#d9dbd5] normal-case focus:border-[#8ad9cb]/45 focus:outline-none"
-              disabled={!memoryId}
-              onChange={(event) =>
-                setPurpose(event.target.value as keyof typeof purposeLabels)
-              }
-              value={memoryId ? purpose : "attachment"}
-            >
-              {Object.entries(purposeLabels).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="grid gap-1 text-[0.56rem] tracking-[0.08em] text-[#7f898d] uppercase">
-            Order
-            <input
-              className="border border-white/10 bg-[#0b0e14] px-2.5 py-2 text-xs text-[#d9dbd5] focus:border-[#8ad9cb]/45 focus:outline-none"
-              min="0"
-              onChange={(event) => setSortOrder(event.target.value)}
-              type="number"
-              value={sortOrder}
-            />
-          </label>
-        </div>
         <label className="grid gap-1 text-[0.56rem] tracking-[0.08em] text-[#7f898d] uppercase">
           Image description
           <textarea

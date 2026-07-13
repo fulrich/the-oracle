@@ -28,6 +28,8 @@ export type DmMediaAsset = Pick<
   | "mime_type"
   | "created_at"
 > & {
+  memoryTitle: string | null;
+  memoryPosition: number | null;
   previewUrl: string;
 };
 
@@ -102,20 +104,31 @@ export async function loadDmMediaLibrary(
     throw new Error("Unable to load the media library.");
   }
 
-  const assets = mediaRows.map((row) => ({
-    id: row.id,
-    character_id: row.character_id,
-    memory_id: row.memory_id,
-    folder: row.folder,
-    purpose: row.purpose,
-    alt_text: row.alt_text,
-    width: row.width,
-    height: row.height,
-    sort_order: row.sort_order,
-    mime_type: row.mime_type,
-    created_at: row.created_at,
-    previewUrl: `/api/memory-media/${row.id}`,
-  }));
+  const selectedCharacter = characters.find(
+    (character) => character.id === selectedCharacterId,
+  );
+  const memoryById = new Map(
+    selectedCharacter?.memories.map((memory) => [memory.id, memory]) ?? [],
+  );
+  const assets = mediaRows.map((row) => {
+    const memory = row.memory_id ? memoryById.get(row.memory_id) : undefined;
+    return {
+      id: row.id,
+      character_id: row.character_id,
+      memory_id: row.memory_id,
+      folder: row.folder,
+      purpose: row.purpose,
+      alt_text: row.alt_text,
+      width: row.width,
+      height: row.height,
+      sort_order: row.sort_order,
+      mime_type: row.mime_type,
+      created_at: row.created_at,
+      memoryTitle: memory?.title ?? null,
+      memoryPosition: memory?.position ?? null,
+      previewUrl: `/api/memory-media/${row.id}`,
+    };
+  });
 
   return { selectedCharacterId, characters, assets };
 }

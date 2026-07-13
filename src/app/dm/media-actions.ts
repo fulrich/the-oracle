@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { requireAdministrator } from "@/lib/dm-auth.server";
@@ -61,10 +62,21 @@ const registerMediaSchema = z.object({
 const updateMediaSchema = z.object({
   assetId: z.uuid(),
   folder: folderSchema,
-  memoryId: z.uuid().nullable(),
-  purpose: mediaPurposeSchema,
   altText: altTextSchema,
-  sortOrder: z.number().int().min(0).max(9999),
+});
+
+const attachMediaSchema = z.object({
+  characterId: z.uuid(),
+  memoryId: z.uuid(),
+  assetId: z.uuid(),
+  purpose: mediaPurposeSchema,
+  sortOrder: z.coerce.number().int().min(0).max(9999),
+});
+
+const detachMediaSchema = z.object({
+  characterId: z.uuid(),
+  memoryId: z.uuid(),
+  assetId: z.uuid(),
 });
 
 const assetIdSchema = z.object({ assetId: z.uuid() });
@@ -255,22 +267,13 @@ export async function registerMediaAsset(input: {
 export async function updateMediaAsset(input: {
   assetId: string;
   folder: string;
-  memoryId: string | null;
-  purpose: "hero" | "card" | "attachment";
   altText: string;
-  sortOrder: number;
 }): Promise<MediaActionResult> {
   await requireAdministrator();
   const parsed = updateMediaSchema.safeParse(input);
   if (!parsed.success) {
     return failure("Complete the image details before saving.");
   }
-  if (!parsed.data.memoryId && parsed.data.purpose !== "attachment") {
-    return failure(
-      "Unattached images must be supporting images until attached.",
-    );
-  }
-
   const supabase = await createServerSupabaseClient();
   const { data: existing, error: existingError } = await supabase
     .from("memory_media")
@@ -281,24 +284,12 @@ export async function updateMediaAsset(input: {
   if (existingError || !existing) {
     return failure("That image is no longer in the library.");
   }
-  if (
-    !(await verifyMemoryTarget(
-      supabase,
-      existing.character_id,
-      parsed.data.memoryId,
-    ))
-  ) {
-    return failure("Choose a published memory for this character.");
-  }
 
   const { error } = await supabase
     .from("memory_media")
     .update({
       folder: parsed.data.folder,
-      memory_id: parsed.data.memoryId,
-      purpose: parsed.data.purpose,
       alt_text: parsed.data.altText,
-      sort_order: parsed.data.sortOrder,
     })
     .eq("id", parsed.data.assetId);
 
@@ -308,6 +299,104 @@ export async function updateMediaAsset(input: {
 
   revalidateMedia(existing.character_id);
   return { ok: true, assetId: parsed.data.assetId };
+}
+
+export async function attachMediaToMemory(formData: FormData): Promise<void> {
+  await requireAdministrator();
+  const characterId = z.uuid().safeParse(formData.get("characterId"));
+  const memoryId = z.uuid().safeParse(formData.get("memoryId"));
+  const detailPath =
+    characterId.success && memoryId.success
+      ? `/dm/characters/${characterId.data}/memories/${memoryId.data}`
+      : "/dm";
+  const input = attachMediaSchema.safeParse({
+    characterId: formData.get("characterId"),
+    memoryId: formData.get("memoryId"),
+    assetId: formData.get("assetId"),
+    purpose: formData.get("purpose"),
+    sortOrder: formData.get("sortOrder"),
+  });
+  if (!input.success) {
+    redirect(`${detailPath}?error=invalid_media_attachment`);
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const [memoryResult, assetResult] = await Promise.all([
+    supabase
+      .from("memories")
+      .select("id")
+      .eq("id", input.data.memoryId)
+      .eq("character_id", input.data.characterId)
+      .eq("publication_status", "published")
+      .maybeSingle(),
+    supabase
+      .from("memory_media")
+      .select("id")
+      .eq("id", input.data.assetId)
+      .eq("character_id", input.data.characterId)
+      .is("memory_id", null)
+      .maybeSingle(),
+  ]);
+
+  if (
+    memoryResult.error ||
+    assetResult.error ||
+    !memoryResult.data ||
+    !assetResult.data
+  ) {
+    redirect(`${detailPath}?error=media_attachment_failed`);
+  }
+
+  const { error } = await supabase
+    .from("memory_media")
+    .update({
+      memory_id: input.data.memoryId,
+      purpose: input.data.purpose,
+      sort_order: input.data.sortOrder,
+    })
+    .eq("id", input.data.assetId)
+    .eq("character_id", input.data.characterId)
+    .is("memory_id", null);
+
+  if (error) {
+    redirect(`${detailPath}?error=media_attachment_failed`);
+  }
+
+  revalidateMedia(input.data.characterId);
+  redirect(`${detailPath}?updated=media_attached`);
+}
+
+export async function detachMediaFromMemory(formData: FormData): Promise<void> {
+  await requireAdministrator();
+  const characterId = z.uuid().safeParse(formData.get("characterId"));
+  const memoryId = z.uuid().safeParse(formData.get("memoryId"));
+  const detailPath =
+    characterId.success && memoryId.success
+      ? `/dm/characters/${characterId.data}/memories/${memoryId.data}`
+      : "/dm";
+  const input = detachMediaSchema.safeParse({
+    characterId: formData.get("characterId"),
+    memoryId: formData.get("memoryId"),
+    assetId: formData.get("assetId"),
+  });
+  if (!input.success) {
+    redirect(`${detailPath}?error=invalid_media_attachment`);
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase
+    .from("memory_media")
+    .update({ memory_id: null, purpose: "attachment", sort_order: 0 })
+    .eq("id", input.data.assetId)
+    .eq("character_id", input.data.characterId)
+    .eq("memory_id", input.data.memoryId);
+
+  if (error) {
+    redirect(`${detailPath}?error=media_detachment_failed`);
+  }
+
+  revalidateMedia(input.data.characterId);
+  redirect(`${detailPath}?updated=media_detached`);
 }
 
 export async function deleteMediaAsset(input: {

@@ -88,8 +88,8 @@ export default async function DmMediaPage({
               Media library
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-[#858d91]">
-              Upload reviewed artwork once, organize it into folders, and attach
-              it to memories without relying on filenames.
+              Upload and organize reviewed artwork here. Attach assets from the
+              memory management page when you are ready.
             </p>
           </div>
         </div>
