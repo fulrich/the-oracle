@@ -135,17 +135,6 @@
   text-shadow: 0 1px 8px rgb(0 0 0 / 80%);
 }
 
-.cardIndex {
-  display: grid;
-  width: 1.65rem;
-  height: 1.65rem;
-  place-items: center;
-  border: 1px solid rgb(255 255 255 / 22%);
-  border-radius: 50%;
-  background: rgb(4 8 13 / 36%);
-  backdrop-filter: blur(6px);
-}
-
 .cardCopy {
   position: absolute;
   right: 1.1rem;

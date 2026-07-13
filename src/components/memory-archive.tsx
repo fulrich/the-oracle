@@ -1,6 +1,6 @@
 "use client";
 
-import { EyeIcon, LogOutIcon, SparklesIcon } from "lucide-react";
+import { LogOutIcon, SparklesIcon } from "lucide-react";
 
 import { signOut } from "@/app/auth/actions";
 import { MemoryHand } from "@/components/memory-hand";
@@ -48,25 +48,8 @@ export function MemoryArchive({ memorySet }: { memorySet: MemorySet }) {
         </div>
       </header>
 
-      <section className="relative z-10 mx-auto w-full max-w-[94rem] px-5 pt-10 sm:px-8 sm:pt-14 lg:px-12 lg:pt-16">
-        <div className="max-w-3xl">
-          <div className="mb-5 flex items-center gap-3">
-            <EyeIcon
-              aria-hidden="true"
-              className="size-4 text-[#8ad9cb]"
-              strokeWidth={1.35}
-            />
-            <p className="font-mono text-[0.62rem] font-semibold tracking-[0.23em] text-[#8ad9cb] uppercase">
-              Your memories
-            </p>
-            <span className="h-px w-12 bg-[#8ad9cb]/24" />
-          </div>
-          <h1 className="font-heading max-w-3xl text-5xl leading-[0.88] font-normal tracking-[-0.052em] text-balance text-[#f0eadc] sm:text-6xl lg:text-7xl xl:text-[5.1rem]">
-            Some things return in <em className="text-[#b6dbd4]">fragments.</em>
-          </h1>
-        </div>
-
-        <div className="mt-6 sm:mt-4">
+      <section className="relative z-10 mx-auto w-full max-w-[94rem] px-5 pt-8 sm:px-8 sm:pt-12 lg:px-12 lg:pt-14">
+        <div>
           {memorySet.memories.length > 0 ? (
             <MemoryHand
               key={memorySet.playerName}

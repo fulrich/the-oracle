@@ -261,9 +261,6 @@ export function MemoryHand({ memories }: { memories: readonly Memory[] }) {
                 <span className={styles.cardVellum} />
                 <span className={styles.cardTopline}>
                   <span>{memory.chapter}</span>
-                  <span className={styles.cardIndex}>
-                    {romanNumerals[index] ?? index + 1}
-                  </span>
                 </span>
                 <span className={styles.cardCopy}>
                   <span className={styles.cardTitle}>{memory.title}</span>

@@ -57,11 +57,6 @@ describe("player memory viewer", () => {
     render(<Home />);
 
     expect(
-      screen.getByRole("heading", {
-        name: "Some things return in fragments.",
-      }),
-    ).toBeInTheDocument();
-    expect(
       screen.getByRole("group", { name: "Memory cards" }),
     ).toBeInTheDocument();
     expect(
