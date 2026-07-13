@@ -1,7 +1,7 @@
 # Technology Stack
 
 **Status:** Initial architecture decision  
-**Reviewed:** 2026-07-09
+**Reviewed:** 2026-07-11
 
 ## Product Requirements
 
@@ -106,7 +106,7 @@ Vite + React + Supabase + separately deployed serverless functions
 
 Next.js is preferred because it reduces integration and deployment boundaries. Server rendering is not the deciding factor, since an invite-only application has little need for SEO.
 
-Reconsider Vite or React Router framework mode if the team later prefers a strict SPA/backend separation or wants to avoid Next.js and Vercel conventions.
+Reconsider Vite or React Router framework mode if the team later prefers a strict SPA/backend separation or wants to avoid Next.js server conventions.
 
 ## UI and Campaign Theming
 
@@ -336,17 +336,17 @@ pending -> running -> succeeded | failed
 
 Use idempotency keys, per-user concurrency limits, bounded retries, and private outputs. A player's OpenAI key transfers OpenAI usage cost but does not protect the application from storage, bandwidth, or abuse costs.
 
-Current Vercel Hobby functions support execution up to five minutes. This should usually accommodate one image generation. If durable asynchronous generation is later required, a queue worker cannot use a non-persisted key. At that point choose between user resubmission and short-lived KMS-encrypted job-key escrow.
+Image generation remains deferred from the memory-viewer release. If durable asynchronous generation is later required, a queue worker cannot use a non-persisted key. At that point choose between user resubmission and short-lived KMS-encrypted job-key escrow.
 
 ## Image Processing
 
 Use Sharp for ordinary resizing, format conversion, thumbnails, and metadata handling.
 
-The current keyed-token transparency process depends on the ImageMagick CLI and connected-component analysis. Do not assume it will run unchanged in Vercel's serverless environment. Options are:
+The current keyed-token transparency process depends on the ImageMagick CLI and connected-component analysis. It is not part of the Vercel deployment. Options are:
 
 1. defer token generation in the initial release;
 2. port the algorithm to Sharp or WebAssembly;
-3. run that workflow in a containerized worker such as Cloud Run, Railway, or Fly.io.
+3. run that workflow in a separate containerized worker.
 
 The initial product requirements do not require token generation, so defer this infrastructure until needed.
 
@@ -354,14 +354,13 @@ The initial product requirements do not require token generation, so defer this 
 
 ### Development
 
-- Vercel Hobby: $0
+- Vercel Hobby: $0 for eligible personal, noncommercial use
 - Supabase Free: $0
-- OpenAI image generation: charged to each player's key
 - Optional custom domain: approximately $10-20/year
 
 ### Dependable production
 
-- Vercel Hobby: $0 while the project remains personal and noncommercial
+- Vercel: recheck current plan limits and pricing before launch
 - Supabase Pro: approximately $25/month
 - Custom domain: approximately $10-20/year
 
@@ -410,8 +409,9 @@ Authorization tests are product-critical. At minimum, automate these cases:
 - [Supabase private Storage downloads](https://supabase.com/docs/guides/storage/serving/downloads)
 - [Supabase pricing](https://supabase.com/pricing)
 - [Supabase backups](https://supabase.com/docs/guides/platform/backups)
-- [Vercel Hobby plan](https://vercel.com/docs/plans/hobby)
-- [Vercel function duration](https://vercel.com/docs/functions/configuring-functions/duration)
+- [Vercel Next.js deployment](https://vercel.com/docs/frameworks/full-stack/nextjs)
+- [Vercel CLI](https://vercel.com/docs/cli)
+- [Vercel pricing](https://vercel.com/pricing)
 - [OpenAI image generation](https://developers.openai.com/api/docs/guides/image-generation)
 - [OpenAI API key safety](https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety)
 - [Firebase Firestore data model](https://firebase.google.com/docs/firestore/data-model)

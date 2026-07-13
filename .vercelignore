@@ -1,0 +1,20 @@
+# Local state and credentials
+.env*
+.vercel/
+.next/
+node_modules/
+
+# Database migrations are applied directly to Supabase and are not application
+# runtime inputs. This also keeps approved campaign prose out of Vercel builds.
+supabase/
+
+# Development-only material
+.github/
+docs/
+scripts/
+coverage/
+test-results/
+playwright-report/
+*.test.ts
+*.test.tsx
+vitest.config.ts

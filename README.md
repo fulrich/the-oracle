@@ -61,6 +61,25 @@ Open [http://127.0.0.1:3000](http://127.0.0.1:3000) and choose a synthetic ident
 
 Characters are immutable campaign reference data. The `/dm` landing page assigns one optional player email to each character, links to revealed/hidden memory controls, and opens a read-only character preview even when no email is assigned. Preview never replaces the DM session. The application cannot create, edit, or delete characters. `LOCAL_DM_EMAIL`, when set, restores the local administrator after every `pnpm db:reset`.
 
+## Vercel deployment
+
+No Git host is required. Create and link a Vercel project directly from the project root:
+
+```bash
+pnpm dlx vercel login
+pnpm dlx vercel link
+```
+
+In the Vercel project settings, add these Production environment variables:
+
+```text
+NEXT_PUBLIC_SUPABASE_URL=<hosted-supabase-url>
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<hosted-publishable-key>
+NEXT_PUBLIC_SITE_URL=https://<project-name>.vercel.app
+```
+
+Deploy with `pnpm dlx vercel --prod`. Then set the same origin as Supabase Auth's **Site URL** and allow `https://<project-name>.vercel.app/auth/callback` as a redirect URL. `.vercelignore` excludes local credentials, database migrations, tests, and documentation from the application upload.
+
 ## Commands
 
 | Command             | Purpose                                                  |

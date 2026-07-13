@@ -16,7 +16,7 @@ The local stack is only a development environment. Before connecting a hosted Su
 1. Configure Google as the only player-facing signup provider. The Google OAuth client's authorized redirect URI is Supabase Auth's callback URL (`https://<project-ref>.supabase.co/auth/v1/callback`).
 2. Keep email/password signup disabled. Local password users are seeded directly and exist only for development testing.
 3. Add the exact application callback (`https://<application-origin>/auth/callback`) to Supabase Auth's redirect allowlist.
-4. Set `NEXT_PUBLIC_SITE_URL` to that exact application origin in Vercel. Never set `ENABLE_LOCAL_AUTH=true` in a hosted environment.
+4. Set `NEXT_PUBLIC_SITE_URL` to the exact Vercel HTTPS origin. Never set `ENABLE_LOCAL_AUTH=true` in a hosted environment.
 5. Push or reproduce the Before User Created hook configuration from `supabase/config.toml`:
    - URI: `pg-functions://postgres/app_private/before_user_created`
    - The hook accepts only active, exact-email allowlist entries using Google identity metadata.

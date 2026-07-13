@@ -18,7 +18,7 @@ This version of Next.js may differ from training data. Read the relevant guide i
 - Next.js App Router with strict TypeScript
 - Tailwind CSS and owned shadcn/ui component source
 - Supabase Auth, PostgreSQL with RLS, and private Storage
-- Vercel hosting
+- Vercel hosting with direct CLI deployment
 - OpenAI image requests from server-only code
 
 Prefer Server Components by default and Client Components only where browser interactivity is required. Validate untrusted input with Zod. Use reviewed SQL migrations and generated Supabase types rather than adding an ORM without a documented need.
