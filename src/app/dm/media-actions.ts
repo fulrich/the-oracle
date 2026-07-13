@@ -33,7 +33,7 @@ const folderSchema = z
   .max(80)
   .refine((value) => !/[\u0000-\u001f\u007f]/u.test(value))
   .refine((value) => !/(^|\/)\.\.($|\/)/u.test(value));
-const altTextSchema = z
+const fileNameSchema = z
   .string()
   .trim()
   .min(1)
@@ -53,7 +53,7 @@ const registerMediaSchema = z.object({
   folder: folderSchema,
   memoryId: z.uuid().nullable(),
   purpose: mediaPurposeSchema,
-  altText: altTextSchema,
+  fileName: fileNameSchema,
   width: z.number().int().positive().max(10000).nullable(),
   height: z.number().int().positive().max(10000).nullable(),
   sortOrder: z.number().int().min(0).max(9999),
@@ -62,7 +62,6 @@ const registerMediaSchema = z.object({
 const updateMediaSchema = z.object({
   assetId: z.uuid(),
   folder: folderSchema,
-  altText: altTextSchema,
 });
 
 const attachMediaSchema = z.object({
@@ -187,7 +186,7 @@ export async function registerMediaAsset(input: {
   folder: string;
   memoryId: string | null;
   purpose: "hero" | "card" | "attachment";
-  altText: string;
+  fileName: string;
   width: number | null;
   height: number | null;
   sortOrder: number;
@@ -250,7 +249,7 @@ export async function registerMediaAsset(input: {
     purpose: parsed.data.purpose,
     sort_order: parsed.data.memoryId ? sortOrder : parsed.data.sortOrder,
     mime_type: parsed.data.mimeType,
-    alt_text: parsed.data.altText,
+    file_name: parsed.data.fileName,
     width: parsed.data.width,
     height: parsed.data.height,
     created_by: viewer.authUserId,
@@ -267,7 +266,6 @@ export async function registerMediaAsset(input: {
 export async function updateMediaAsset(input: {
   assetId: string;
   folder: string;
-  altText: string;
 }): Promise<MediaActionResult> {
   await requireAdministrator();
   const parsed = updateMediaSchema.safeParse(input);
@@ -287,10 +285,7 @@ export async function updateMediaAsset(input: {
 
   const { error } = await supabase
     .from("memory_media")
-    .update({
-      folder: parsed.data.folder,
-      alt_text: parsed.data.altText,
-    })
+    .update({ folder: parsed.data.folder })
     .eq("id", parsed.data.assetId);
 
   if (error) {

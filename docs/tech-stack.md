@@ -211,7 +211,7 @@ content_media
 - content_id
 - private_storage_key
 - media_type
-- alt_text
+- file_name
 
 generated_art
 - id

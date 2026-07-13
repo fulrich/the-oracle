@@ -23,7 +23,7 @@ select lives_ok(
       folder,
       purpose,
       mime_type,
-      alt_text,
+      file_name,
       created_by
     ) values (
       '49000000-0000-4000-8000-000000000005',
@@ -33,7 +33,7 @@ select lives_ok(
       'forge studies',
       'attachment',
       'image/webp',
-      'A study of the forge interior.',
+      'kaelen-forge.webp',
       '00000000-0000-4000-8000-000000000001'
     )$$,
   'an administrator can add an unattached asset to the library'
@@ -57,7 +57,7 @@ select throws_ok(
       folder,
       purpose,
       mime_type,
-      alt_text
+      file_name
     ) values (
       '49000000-0000-4000-8000-000000000006',
       '20000000-0000-4000-8000-000000000003',
@@ -66,7 +66,7 @@ select throws_ok(
       'forge studies',
       'hero',
       'image/webp',
-      'Invalid unattached hero.'
+      'invalid-hero.webp'
     )$$,
   'P0001',
   null,
@@ -115,7 +115,7 @@ select throws_ok(
       storage_object_name,
       purpose,
       mime_type,
-      alt_text
+      file_name
     ) values (
       '49000000-0000-4000-8000-000000000007',
       '20000000-0000-4000-8000-000000000003',
@@ -123,7 +123,7 @@ select throws_ok(
       'characters/20000000-0000-4000-8000-000000000003/assets/49000000-0000-4000-8000-000000000007.webp',
       'attachment',
       'image/webp',
-      'Player must not upload.'
+      'player-upload.webp'
     )$$,
   '42501',
   null,

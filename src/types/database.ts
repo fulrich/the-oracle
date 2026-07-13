@@ -236,10 +236,10 @@ export type Database = {
       };
       memory_media: {
         Row: {
-          alt_text: string;
           character_id: string;
           created_at: string;
           created_by: string | null;
+          file_name: string;
           folder: string;
           height: number | null;
           id: string;
@@ -252,10 +252,10 @@ export type Database = {
           width: number | null;
         };
         Insert: {
-          alt_text: string;
           character_id: string;
           created_at?: string;
           created_by?: string | null;
+          file_name: string;
           folder?: string;
           height?: number | null;
           id?: string;
@@ -268,10 +268,10 @@ export type Database = {
           width?: number | null;
         };
         Update: {
-          alt_text?: string;
           character_id?: string;
           created_at?: string;
           created_by?: string | null;
+          file_name?: string;
           folder?: string;
           height?: number | null;
           id?: string;

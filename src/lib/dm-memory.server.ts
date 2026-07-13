@@ -6,7 +6,7 @@ import type { MemoryMediaRow } from "@/lib/memory-media.server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 const mediaColumns =
-  "id, character_id, memory_id, storage_object_name, folder, purpose, alt_text, width, height, sort_order, mime_type, created_at";
+  "id, character_id, memory_id, storage_object_name, folder, purpose, file_name, width, height, sort_order, mime_type, created_at";
 
 type MemoryDetailRow = {
   id: string;
@@ -42,7 +42,7 @@ function assetFromRow(
     memory_id: row.memory_id,
     folder: row.folder,
     purpose: row.purpose,
-    alt_text: row.alt_text,
+    file_name: row.file_name,
     width: row.width,
     height: row.height,
     sort_order: row.sort_order,

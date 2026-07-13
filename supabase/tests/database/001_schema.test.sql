@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(39);
+select plan(40);
 
 select has_schema('app_private', 'private authorization schema exists');
 select has_table('public', 'allowed_users', 'allowed_users table exists');
@@ -24,6 +24,12 @@ select has_column(
   'memory_media',
   'folder',
   'media assets support logical folders'
+);
+select has_column(
+  'public',
+  'memory_media',
+  'file_name',
+  'media assets retain their source filenames as labels'
 );
 select ok(
   (

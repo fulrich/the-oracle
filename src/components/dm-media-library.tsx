@@ -34,7 +34,6 @@ const purposeLabels = {
 type UploadDraft = {
   id: string;
   file: File;
-  altText: string;
 };
 
 type MediaLibraryProps = {
@@ -109,7 +108,7 @@ export function DmMediaLibrary({
         rejected.push(`${file.name}: larger than 10 MB`);
         continue;
       }
-      accepted.push({ id: crypto.randomUUID(), file, altText: "" });
+      accepted.push({ id: crypto.randomUUID(), file });
     }
 
     if (rejected.length) {
@@ -124,25 +123,8 @@ export function DmMediaLibrary({
     setDrafts((current) => current.filter((draft) => draft.id !== id));
   }
 
-  function updateDraftAltText(id: string, altText: string) {
-    setDrafts((current) =>
-      current.map((draft) => (draft.id === id ? { ...draft, altText } : draft)),
-    );
-  }
-
   async function uploadDrafts() {
     if (!selectedCharacter || drafts.length === 0) return;
-
-    const incomplete = drafts.find(
-      (draft) => draft.altText.trim().length === 0,
-    );
-    if (incomplete) {
-      setMessage({
-        kind: "error",
-        text: "Describe each image before uploading it.",
-      });
-      return;
-    }
 
     setBusy(true);
     setMessage(null);
@@ -179,7 +161,7 @@ export function DmMediaLibrary({
           folder: folder.trim() || "uncategorized",
           memoryId: null,
           purpose: "attachment",
-          altText: draft.altText.trim(),
+          fileName: draft.file.name,
           width: dimensions.width,
           height: dimensions.height,
           sortOrder: 0,
@@ -324,18 +306,6 @@ export function DmMediaLibrary({
                       Remove
                     </button>
                   </div>
-                  <label className="mt-3 grid gap-1 text-[0.58rem] tracking-[0.08em] text-[#7f898d] uppercase">
-                    Image description
-                    <input
-                      className="border border-white/10 bg-[#0e1219] px-3 py-2 text-sm tracking-normal text-[#d9dbd5] normal-case placeholder:text-[#4f5a60] focus:border-[#8ad9cb]/45 focus:outline-none"
-                      maxLength={500}
-                      onChange={(event) =>
-                        updateDraftAltText(draft.id, event.target.value)
-                      }
-                      placeholder="Describe what the player should see"
-                      value={draft.altText}
-                    />
-                  </label>
                 </div>
               ))}
               <button
@@ -423,7 +393,6 @@ function MediaAssetCard({
   onChanged: () => void;
 }) {
   const [folder, setFolder] = useState(asset.folder);
-  const [altText, setAltText] = useState(asset.alt_text);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -433,7 +402,6 @@ function MediaAssetCard({
     const result = await updateMediaAsset({
       assetId: asset.id,
       folder,
-      altText,
     });
     setBusy(false);
     if (!result.ok) {
@@ -461,7 +429,7 @@ function MediaAssetCard({
     <article className="border border-white/10 bg-[#0e1219] p-3">
       <div className="relative aspect-[4/3] overflow-hidden border border-white/8 bg-[#090d13]">
         <Image
-          alt={asset.alt_text}
+          alt={asset.file_name}
           className="object-cover"
           fill
           sizes="(min-width: 1280px) 22rem, (min-width: 640px) 40vw, 100vw"
@@ -474,6 +442,9 @@ function MediaAssetCard({
       </div>
 
       <div className="mt-3 grid gap-3">
+        <p className="truncate text-sm text-[#d5d8d1]" title={asset.file_name}>
+          {asset.file_name}
+        </p>
         <p className="text-xs text-[#858f92]">
           {asset.memory_id ? (
             <Link
@@ -495,15 +466,6 @@ function MediaAssetCard({
             maxLength={80}
             onChange={(event) => setFolder(event.target.value)}
             value={folder}
-          />
-        </label>
-        <label className="grid gap-1 text-[0.56rem] tracking-[0.08em] text-[#7f898d] uppercase">
-          Image description
-          <textarea
-            className="min-h-16 resize-y border border-white/10 bg-[#0b0e14] px-2.5 py-2 text-xs leading-5 tracking-normal text-[#d9dbd5] normal-case focus:border-[#8ad9cb]/45 focus:outline-none"
-            maxLength={500}
-            onChange={(event) => setAltText(event.target.value)}
-            value={altText}
           />
         </label>
         <div className="flex items-center justify-between gap-3">

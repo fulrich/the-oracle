@@ -18,7 +18,7 @@ export type MemoryMediaRow = Pick<
   | "storage_object_name"
   | "folder"
   | "purpose"
-  | "alt_text"
+  | "file_name"
   | "width"
   | "height"
   | "sort_order"
@@ -47,7 +47,7 @@ function imageFromRow(row: MemoryMediaRow): MemoryImage {
   return {
     src: mediaUrl,
     cardSrc: mediaUrl,
-    alt: row.alt_text,
+    alt: row.file_name,
     width: row.width ?? DEFAULT_IMAGE_WIDTH,
     height: row.height ?? DEFAULT_IMAGE_HEIGHT,
     purpose: row.purpose,
@@ -72,7 +72,7 @@ export async function attachMemoryMedia(
   const { data: mediaRows, error } = await supabase
     .from("memory_media")
     .select(
-      "id, character_id, memory_id, storage_object_name, folder, purpose, alt_text, width, height, sort_order, mime_type, created_at",
+      "id, character_id, memory_id, storage_object_name, folder, purpose, file_name, width, height, sort_order, mime_type, created_at",
     )
     .in("memory_id", memoryIds)
     .order("sort_order", { ascending: true });
@@ -123,7 +123,7 @@ export async function attachMemoryMedia(
         image: {
           ...primary,
           cardSrc: cardUrl ?? primary.cardSrc,
-          alt: hero?.alt_text ?? primary.alt,
+          alt: hero?.file_name ?? primary.alt,
         },
       };
     }),

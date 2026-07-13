@@ -54,7 +54,7 @@ function mediaRow(
     storage_object_name: `characters/kaelen/assets/${id}.webp`,
     folder: "forge",
     purpose,
-    alt_text: `Image ${sortOrder + 1}`,
+    file_name: `memory-${sortOrder + 1}.webp`,
     width: 1600,
     height: 2000,
     sort_order: sortOrder,
@@ -101,7 +101,7 @@ describe("attachMemoryMedia", () => {
       image: {
         src: "/api/memory-media/49000000-0000-4000-8000-000000000001",
         cardSrc: "/api/memory-media/49000000-0000-4000-8000-000000000001",
-        alt: "Image 1",
+        alt: "memory-1.webp",
         purpose: "hero",
       },
       images: [

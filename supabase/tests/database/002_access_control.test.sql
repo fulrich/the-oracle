@@ -37,7 +37,7 @@ insert into public.memory_media (
   storage_object_name,
   purpose,
   mime_type,
-  alt_text
+  file_name
 )
 values
   (
@@ -47,7 +47,7 @@ values
     '33000000-0000-4000-8000-000000000001/hero.webp',
     'hero',
     'image/webp',
-    'Test image for the first Kaelen memory'
+    'kaelen-memory-01.webp'
   ),
   (
     '49000000-0000-4000-8000-000000000002',
@@ -56,7 +56,7 @@ values
     '33000000-0000-4000-8000-000000000002/hero.webp',
     'hero',
     'image/webp',
-    'Test image for the second Kaelen memory'
+    'kaelen-memory-02.webp'
   ),
   (
     '49000000-0000-4000-8000-000000000003',
@@ -65,7 +65,7 @@ values
     '39000000-0000-4000-8000-000000000001/hero.webp',
     'hero',
     'image/webp',
-    'Test image for a draft memory'
+    'kaelen-draft.webp'
   ),
   (
     '49000000-0000-4000-8000-000000000004',
@@ -74,7 +74,7 @@ values
     '34000000-0000-4000-8000-000000000001/hero.webp',
     'hero',
     'image/webp',
-    'Test image for the first Telestra memory'
+    'telestra-memory-01.webp'
   );
 
 insert into storage.objects (id, bucket_id, name, metadata)

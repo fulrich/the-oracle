@@ -209,7 +209,7 @@ export default async function DmMemoryArtworkPage({
                 >
                   <div className="relative aspect-[4/3] overflow-hidden border border-white/8 bg-[#090d13]">
                     <Image
-                      alt={asset.alt_text}
+                      alt={asset.file_name}
                       className="object-cover"
                       fill
                       sizes="(min-width: 1024px) 28vw, (min-width: 640px) 45vw, 100vw"
@@ -220,8 +220,11 @@ export default async function DmMemoryArtworkPage({
                   <p className="mt-3 font-mono text-[0.55rem] tracking-[0.1em] text-[#8ad9cb] uppercase">
                     {purposeLabel(asset.purpose)} · {asset.folder}
                   </p>
-                  <p className="mt-2 text-sm leading-5 text-[#aeb6b5]">
-                    {asset.alt_text}
+                  <p
+                    className="mt-2 truncate text-sm leading-5 text-[#aeb6b5]"
+                    title={asset.file_name}
+                  >
+                    {asset.file_name}
                   </p>
                   <form action={detachMediaFromMemory} className="mt-4">
                     <input
@@ -278,7 +281,7 @@ export default async function DmMemoryArtworkPage({
                 >
                   <div className="relative aspect-[4/3] overflow-hidden border border-white/8 bg-[#090d13]">
                     <Image
-                      alt={asset.alt_text}
+                      alt={asset.file_name}
                       className="object-cover"
                       fill
                       sizes="(min-width: 1024px) 28vw, (min-width: 640px) 45vw, 100vw"
@@ -289,8 +292,11 @@ export default async function DmMemoryArtworkPage({
                   <p className="mt-3 font-mono text-[0.55rem] tracking-[0.1em] text-[#8ad9cb] uppercase">
                     {asset.folder}
                   </p>
-                  <p className="mt-2 text-sm leading-5 text-[#aeb6b5]">
-                    {asset.alt_text}
+                  <p
+                    className="mt-2 truncate text-sm leading-5 text-[#aeb6b5]"
+                    title={asset.file_name}
+                  >
+                    {asset.file_name}
                   </p>
                   <form
                     action={attachMediaToMemory}
