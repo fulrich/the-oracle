@@ -37,6 +37,7 @@ export function MemoryArchive({ memorySet }: { memorySet: MemorySet }) {
             className="size-9 rounded-full border border-[#c6a979]/25 bg-[radial-gradient(circle_at_36%_28%,#6c695d,#292d31_54%,#101419)] font-serif text-xs text-[#ede5d0] shadow-[0_0_1.5rem_rgba(198,169,121,0.08)]"
             displayName={memorySet.playerName}
             initials={memorySet.playerInitials}
+            profileCrop={memorySet.profileCrop}
             profileMediaId={memorySet.profileMediaId}
             sizes="2.25rem"
           />

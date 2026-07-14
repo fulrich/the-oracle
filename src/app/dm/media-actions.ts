@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { requireAdministrator } from "@/lib/dm-auth.server";
+import type { ProfileMediaCrop } from "@/lib/profile-media";
 import { MEMORY_MEDIA_BUCKET } from "@/lib/memory-media.server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -79,10 +80,28 @@ const detachMediaSchema = z.object({
 });
 
 const assetIdSchema = z.object({ assetId: z.uuid() });
-const profileMediaSchema = z.object({
-  characterId: z.uuid(),
-  assetId: z.uuid().nullable(),
-});
+const profileCropInputSchema = z
+  .object({
+    x: z.number().min(0).max(1),
+    y: z.number().min(0).max(1),
+    width: z.number().positive().max(1),
+    height: z.number().positive().max(1),
+    positionX: z.number().min(0).max(1),
+    positionY: z.number().min(0).max(1),
+    scale: z.number().min(1).max(3),
+  })
+  .refine((crop) => crop.x + crop.width <= 1)
+  .refine((crop) => crop.y + crop.height <= 1)
+  .nullable();
+const profileMediaSchema = z
+  .object({
+    characterId: z.uuid(),
+    assetId: z.uuid().nullable(),
+    crop: profileCropInputSchema,
+  })
+  .refine((value) => value.assetId !== null || value.crop === null, {
+    message: "A profile crop requires a selected image.",
+  });
 
 export type MediaActionResult =
   | { ok: true; assetId: string; message?: string }
@@ -106,6 +125,7 @@ function revalidateMedia(characterId: string, memoryId?: string) {
 export async function setCharacterProfileMedia(input: {
   characterId: string;
   assetId: string | null;
+  crop: Omit<ProfileMediaCrop, "sourceHeight" | "sourceWidth"> | null;
 }): Promise<MediaActionResult> {
   await requireAdministrator();
   const parsed = profileMediaSchema.safeParse(input);
@@ -124,10 +144,11 @@ export async function setCharacterProfileMedia(input: {
     return failure("That character is not available.");
   }
 
+  let profileCrop: ProfileMediaCrop | null = null;
   if (parsed.data.assetId) {
     const { data: asset, error: assetError } = await supabase
       .from("memory_media")
-      .select("id")
+      .select("id, width, height")
       .eq("id", parsed.data.assetId)
       .eq("character_id", parsed.data.characterId)
       .maybeSingle();
@@ -135,11 +156,24 @@ export async function setCharacterProfileMedia(input: {
     if (assetError || !asset) {
       return failure("Choose an image from this character's library.");
     }
+    if (parsed.data.crop) {
+      if (asset.width === null || asset.height === null) {
+        return failure("That image is missing its dimensions.");
+      }
+      profileCrop = {
+        ...parsed.data.crop,
+        sourceHeight: asset.height,
+        sourceWidth: asset.width,
+      };
+    }
   }
 
   const { error: updateError } = await supabase
     .from("characters")
-    .update({ profile_media_id: parsed.data.assetId })
+    .update({
+      profile_crop: profileCrop,
+      profile_media_id: parsed.data.assetId,
+    })
     .eq("id", parsed.data.characterId);
 
   if (updateError) {

@@ -2,6 +2,7 @@ import "server-only";
 
 import { cache } from "react";
 
+import { parseProfileMediaCrop } from "@/lib/profile-media";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
 
@@ -15,6 +16,7 @@ export type CharacterIdentity = {
   subtitle: string | null;
   archiveNote: string | null;
   profileMediaId?: string | null;
+  profileCrop?: ReturnType<typeof parseProfileMediaCrop>;
 };
 
 export type ActiveViewer = {
@@ -64,7 +66,7 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
   const { data: assignment, error: assignmentError } = await supabase
     .from("character_assignments")
     .select(
-      "character_id, characters(id, slug, display_name, initials, subtitle, archive_note, profile_media_id)",
+      "character_id, characters(id, slug, display_name, initials, subtitle, archive_note, profile_media_id, profile_crop)",
     )
     .eq("allowed_user_id", allowedUser.id)
     .maybeSingle();
@@ -82,6 +84,7 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
         subtitle: assignment.characters.subtitle,
         archiveNote: assignment.characters.archive_note,
         profileMediaId: assignment.characters.profile_media_id,
+        profileCrop: parseProfileMediaCrop(assignment.characters.profile_crop),
       }
     : null;
 

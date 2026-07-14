@@ -2,6 +2,7 @@ import "server-only";
 
 import type { CharacterIdentity } from "@/lib/auth";
 import type { MemoryMediaRow } from "@/lib/memory-media.server";
+import { parseProfileMediaCrop } from "@/lib/profile-media";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export type DmMediaMemoryOption = {
@@ -50,7 +51,7 @@ export async function loadDmMediaLibrary(
   const { data: characterRows, error: characterError } = await supabase
     .from("characters")
     .select(
-      "id, slug, display_name, initials, subtitle, archive_note, profile_media_id",
+      "id, slug, display_name, initials, subtitle, archive_note, profile_media_id, profile_crop",
     )
     .order("display_name");
 
@@ -79,6 +80,7 @@ export async function loadDmMediaLibrary(
         subtitle: character.subtitle,
         archiveNote: character.archive_note,
         profileMediaId: character.profile_media_id,
+        profileCrop: parseProfileMediaCrop(character.profile_crop),
         memories: memories.map((memory) => ({
           id: memory.id,
           position: memory.position,

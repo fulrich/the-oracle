@@ -11,7 +11,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { signOut } from "@/app/auth/actions";
 import { assignPlayerToCharacter } from "@/app/dm/actions";
-import { CharacterAvatar } from "@/components/character-avatar";
+import { DmCharacterProfilePicker } from "@/components/dm-character-profile-picker";
 import { getAuthState } from "@/lib/auth";
 import { loadCharacterAssignments } from "@/lib/dm.server";
 
@@ -93,8 +93,9 @@ export default async function DmPage({
               Characters and players
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-[#858d91]">
-              Assign one player email to each character. Preview any character
-              whether or not an email has been assigned.
+              Assign one player email to each character and click its portrait
+              to choose and frame the standard profile image. Preview any
+              character whether or not an email has been assigned.
             </p>
           </div>
           <p className="font-mono text-[0.62rem] tracking-[0.12em] text-[#687278] uppercase">
@@ -130,13 +131,7 @@ export default async function DmPage({
               key={character.id}
             >
               <div className="flex items-center gap-4">
-                <CharacterAvatar
-                  className="size-11 shrink-0 border border-[#c6a979]/25 bg-[#c6a979]/5 font-serif text-sm text-[#e2d5bd]"
-                  displayName={character.displayName}
-                  initials={character.initials}
-                  profileMediaId={character.profileMediaId}
-                  sizes="2.75rem"
-                />
+                <DmCharacterProfilePicker character={character} />
                 <div>
                   <h2 className="text-base font-semibold text-[#e5e1d7]">
                     {character.displayName}

@@ -147,6 +147,7 @@ export type Database = {
           display_name: string;
           id: string;
           initials: string;
+          profile_crop: Json | null;
           profile_media_id: string | null;
           slug: string;
           subtitle: string | null;
@@ -159,6 +160,7 @@ export type Database = {
           display_name: string;
           id?: string;
           initials: string;
+          profile_crop?: Json | null;
           profile_media_id?: string | null;
           slug: string;
           subtitle?: string | null;
@@ -171,6 +173,7 @@ export type Database = {
           display_name?: string;
           id?: string;
           initials?: string;
+          profile_crop?: Json | null;
           profile_media_id?: string | null;
           slug?: string;
           subtitle?: string | null;

@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(21);
+select plan(23);
 
 -- An unassigned asset is an administrator-only library item until attached.
 set local role authenticated;
@@ -103,6 +103,8 @@ select lives_ok(
       purpose,
       mime_type,
       file_name,
+      width,
+      height,
       created_by
     ) values (
       '49000000-0000-4000-8000-000000000008',
@@ -113,15 +115,36 @@ select lives_ok(
       'attachment',
       'image/webp',
       'kaelen-profile.webp',
+      1200,
+      800,
       '00000000-0000-4000-8000-000000000001'
     )$$,
   'an administrator can add a profile candidate without attaching it to a memory'
 );
 select lives_ok(
   $$update public.characters
-    set profile_media_id = '49000000-0000-4000-8000-000000000008'
+    set profile_media_id = '49000000-0000-4000-8000-000000000008',
+        profile_crop = '{
+          "x": 0.1667,
+          "y": 0,
+          "width": 0.6666,
+          "height": 1,
+          "positionX": 0.5,
+          "positionY": 0.5,
+          "scale": 1.5,
+          "sourceWidth": 1200,
+          "sourceHeight": 800
+        }'::jsonb
     where id = '20000000-0000-4000-8000-000000000003'$$,
-  'an administrator can select a same-character profile image'
+  'an administrator can select and frame a same-character profile image'
+);
+select throws_ok(
+  $$update public.characters
+    set profile_crop = '{"x": 1.5}'::jsonb
+    where id = '20000000-0000-4000-8000-000000000003'$$,
+  '23514',
+  null,
+  'invalid profile framing metadata is rejected'
 );
 select results_eq(
   $$select action from public.admin_audit_events
@@ -242,6 +265,13 @@ select throws_ok(
 select lives_ok(
   $$delete from public.memory_media where id = '49000000-0000-4000-8000-000000000008'$$,
   'removing a profile asset clears the character pointer'
+);
+select results_eq(
+  $$select profile_media_id, profile_crop
+    from public.characters
+    where id = '20000000-0000-4000-8000-000000000003'$$,
+  $$values (null::uuid, null::jsonb)$$,
+  'removing a profile asset also clears its framing metadata'
 );
 select lives_ok(
   $$delete from public.memory_media where id = '49000000-0000-4000-8000-000000000005'$$,

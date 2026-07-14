@@ -3,6 +3,7 @@ import "server-only";
 import type { CharacterIdentity } from "@/lib/auth";
 import type { DmMediaAsset } from "@/lib/dm-media.server";
 import type { MemoryMediaRow } from "@/lib/memory-media.server";
+import { parseProfileMediaCrop } from "@/lib/profile-media";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 const mediaColumns =
@@ -67,7 +68,7 @@ export async function loadDmMemoryMedia(
     supabase
       .from("characters")
       .select(
-        "id, slug, display_name, initials, subtitle, archive_note, profile_media_id",
+        "id, slug, display_name, initials, subtitle, archive_note, profile_media_id, profile_crop",
       )
       .eq("id", characterId)
       .maybeSingle(),
@@ -103,6 +104,7 @@ export async function loadDmMemoryMedia(
     subtitle: characterResult.data.subtitle,
     archiveNote: characterResult.data.archive_note,
     profileMediaId: characterResult.data.profile_media_id,
+    profileCrop: parseProfileMediaCrop(characterResult.data.profile_crop),
   };
   const memoryOption = { title: memory.title, position: memory.position };
   const assets = mediaResult.data.map((row) =>

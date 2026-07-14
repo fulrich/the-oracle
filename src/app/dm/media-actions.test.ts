@@ -138,6 +138,7 @@ describe("DM media actions", () => {
     const result = await setCharacterProfileMedia({
       characterId,
       assetId: "not-a-uuid",
+      crop: null,
     });
 
     expect(result).toEqual({
@@ -171,7 +172,7 @@ describe("DM media actions", () => {
           eq: () => ({
             eq: () => ({
               maybeSingle: vi.fn().mockResolvedValue({
-                data: { id: assetId },
+                data: { id: assetId, width: 1200, height: 800 },
                 error: null,
               }),
             }),
@@ -181,10 +182,30 @@ describe("DM media actions", () => {
     });
     createServerClientMock.mockResolvedValue({ from });
 
-    const result = await setCharacterProfileMedia({ characterId, assetId });
+    const crop = {
+      x: 0.1667,
+      y: 0,
+      width: 0.6666,
+      height: 1,
+      positionX: 0.5,
+      positionY: 0.5,
+      scale: 1.5,
+    };
+    const result = await setCharacterProfileMedia({
+      characterId,
+      assetId,
+      crop,
+    });
 
     expect(result).toEqual({ ok: true, assetId });
-    expect(update).toHaveBeenCalledWith({ profile_media_id: assetId });
+    expect(update).toHaveBeenCalledWith({
+      profile_crop: {
+        ...crop,
+        sourceHeight: 800,
+        sourceWidth: 1200,
+      },
+      profile_media_id: assetId,
+    });
     expect(revalidatePathMock).toHaveBeenCalledWith("/dm");
   });
 });

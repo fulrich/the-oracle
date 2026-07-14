@@ -90,7 +90,7 @@ Deploy with `pnpm dlx vercel --prod`. Then set the same origin as Supabase Auth'
 
 Memory artwork is stored in the private `memory-media` Supabase Storage bucket, not in Git or the Next.js bundle. The app serves it through an authenticated same-origin media route that checks RLS on every request, so a player only ever loads art for their own revealed memories; memories without art keep an abstract placeholder.
 
-DMs upload reviewed, player-safe artwork from **DM administration → Media library**. The library accepts drag-and-drop images and uses each image's filename as its label; filenames never determine authorization or memory attachment. Choose a character and folder/category, then set an existing asset as that character's profile image or open a memory from character memory management to attach or detach artwork. No service-role key or manual filesystem import is required.
+DMs upload reviewed, player-safe artwork from **DM administration → Media library**. The library accepts drag-and-drop images and uses each image's filename as its label; filenames never determine authorization or memory attachment. Choose a character and folder/category, then click that character's avatar square in the DM player list to choose and frame a profile image, or open a memory from character memory management to attach or detach artwork. No service-role key or manual filesystem import is required.
 
 ## Architecture
 

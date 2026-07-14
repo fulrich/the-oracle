@@ -1,3 +1,5 @@
+import type { ProfileMediaCrop } from "@/lib/profile-media";
+
 export type MemoryArtworkKind =
   "threshold" | "cavern" | "orchard" | "portrait" | "wind" | "lantern";
 
@@ -36,5 +38,6 @@ export type MemorySet = {
   playerInitials: string;
   playerSubtitle: string;
   profileMediaId?: string | null;
+  profileCrop?: ProfileMediaCrop | null;
   memories: readonly Memory[];
 };

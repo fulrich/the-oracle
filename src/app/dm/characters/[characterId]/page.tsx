@@ -99,6 +99,7 @@ export default async function DmCharacterMemoriesPage({
               className="size-14 shrink-0 border border-[#c6a979]/25 bg-[#c6a979]/5 font-serif text-base text-[#e2d5bd]"
               displayName={archive.character.displayName}
               initials={archive.character.initials}
+              profileCrop={archive.character.profileCrop}
               profileMediaId={archive.character.profileMediaId}
               sizes="3.5rem"
             />

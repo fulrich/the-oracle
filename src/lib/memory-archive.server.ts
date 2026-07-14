@@ -61,6 +61,7 @@ export function archiveRowsToMemorySet(
     playerInitials: character.initials,
     playerSubtitle: character.subtitle ?? "Player character",
     profileMediaId: character.profileMediaId,
+    profileCrop: character.profileCrop,
     memories: rows.map((row, index) => ({
       id: row.memory_id,
       chapter: row.chapter_label,

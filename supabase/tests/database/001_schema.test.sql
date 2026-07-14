@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(42);
+select plan(44);
 
 select has_schema('app_private', 'private authorization schema exists');
 select has_table('public', 'allowed_users', 'allowed_users table exists');
@@ -13,6 +13,12 @@ select has_column(
   'characters',
   'profile_media_id',
   'characters can select a mutable profile media asset'
+);
+select has_column(
+  'public',
+  'characters',
+  'profile_crop',
+  'characters can store profile framing metadata'
 );
 select has_table('public', 'character_assignments', 'character_assignments table exists');
 select has_table('public', 'memories', 'memories table exists');
@@ -211,7 +217,16 @@ select ok(
     'profile_media_id',
     'update'
   ),
-  'authenticated administrators can update only the profile media column'
+  'authenticated administrators can update the profile media column'
+);
+select ok(
+  has_column_privilege(
+    'authenticated',
+    'public.characters',
+    'profile_crop',
+    'update'
+  ),
+  'authenticated administrators can update the profile crop column'
 );
 select ok(
   not has_table_privilege('authenticated', 'public.characters', 'delete'),
