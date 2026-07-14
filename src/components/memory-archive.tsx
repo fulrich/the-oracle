@@ -3,6 +3,7 @@
 import { LogOutIcon, SparklesIcon } from "lucide-react";
 
 import { signOut } from "@/app/auth/actions";
+import { CharacterAvatar } from "@/components/character-avatar";
 import { MemoryHand } from "@/components/memory-hand";
 import type { MemorySet } from "@/lib/memory";
 
@@ -32,9 +33,13 @@ export function MemoryArchive({ memorySet }: { memorySet: MemorySet }) {
               {memorySet.playerSubtitle}
             </p>
           </div>
-          <span className="grid size-9 place-items-center rounded-full border border-[#c6a979]/25 bg-[radial-gradient(circle_at_36%_28%,#6c695d,#292d31_54%,#101419)] font-serif text-xs text-[#ede5d0] shadow-[0_0_1.5rem_rgba(198,169,121,0.08)]">
-            {memorySet.playerInitials}
-          </span>
+          <CharacterAvatar
+            className="size-9 rounded-full border border-[#c6a979]/25 bg-[radial-gradient(circle_at_36%_28%,#6c695d,#292d31_54%,#101419)] font-serif text-xs text-[#ede5d0] shadow-[0_0_1.5rem_rgba(198,169,121,0.08)]"
+            displayName={memorySet.playerName}
+            initials={memorySet.playerInitials}
+            profileMediaId={memorySet.profileMediaId}
+            sizes="2.25rem"
+          />
           <form action={signOut}>
             <button
               aria-label="Sign out"

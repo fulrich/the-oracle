@@ -94,6 +94,7 @@ describe("authentication data access layer", () => {
           initials: "FC",
           subtitle: "Player character",
           archive_note: "The archive waits",
+          profile_media_id: "49000000-0000-4000-8000-000000000010",
         },
       },
       error: null,
@@ -109,6 +110,7 @@ describe("authentication data access layer", () => {
           id: "character-id",
           slug: "fixed-character",
           displayName: "Fixed Character",
+          profileMediaId: "49000000-0000-4000-8000-000000000010",
         },
       },
     });

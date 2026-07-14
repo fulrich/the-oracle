@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(12);
+select plan(21);
 
 -- An unassigned asset is an administrator-only library item until attached.
 set local role authenticated;
@@ -93,6 +93,44 @@ select results_eq(
   $$values ('memory_media.created'::text), ('memory_media.updated'::text)$$,
   'attaching an asset is audited'
 );
+select lives_ok(
+  $$insert into public.memory_media (
+      id,
+      character_id,
+      memory_id,
+      storage_object_name,
+      folder,
+      purpose,
+      mime_type,
+      file_name,
+      created_by
+    ) values (
+      '49000000-0000-4000-8000-000000000008',
+      '20000000-0000-4000-8000-000000000003',
+      null,
+      'characters/20000000-0000-4000-8000-000000000003/assets/49000000-0000-4000-8000-000000000008.webp',
+      'portraits',
+      'attachment',
+      'image/webp',
+      'kaelen-profile.webp',
+      '00000000-0000-4000-8000-000000000001'
+    )$$,
+  'an administrator can add a profile candidate without attaching it to a memory'
+);
+select lives_ok(
+  $$update public.characters
+    set profile_media_id = '49000000-0000-4000-8000-000000000008'
+    where id = '20000000-0000-4000-8000-000000000003'$$,
+  'an administrator can select a same-character profile image'
+);
+select results_eq(
+  $$select action from public.admin_audit_events
+    where entity_type = 'characters'
+      and entity_id = '20000000-0000-4000-8000-000000000003'
+      and action = 'character.profile_media.updated'$$,
+  $$values ('character.profile_media.updated'::text)$$,
+  'selecting a profile image is audited'
+);
 
 reset role;
 set local role authenticated;
@@ -106,6 +144,22 @@ select results_eq(
   $$select count(*) from public.memory_media where id = '49000000-0000-4000-8000-000000000005'$$,
   $$values (1::bigint)$$,
   'a player sees attached media for a revealed memory'
+);
+select results_eq(
+  $$select count(*) from public.memory_media where id = '49000000-0000-4000-8000-000000000008'$$,
+  $$values (1::bigint)$$,
+  'a player sees a profile asset even when it is not attached to a memory'
+);
+select results_eq(
+  $$with attempted as (
+      update public.characters
+      set profile_media_id = null
+      where id = '20000000-0000-4000-8000-000000000003'
+      returning id
+    )
+    select count(*) from attempted$$,
+  $$values (0::bigint)$$,
+  'players cannot change a character profile image'
 );
 select throws_ok(
   $$insert into public.memory_media (
@@ -143,6 +197,11 @@ select results_eq(
   $$values (0::bigint)$$,
   'another player cannot see the attached asset'
 );
+select results_eq(
+  $$select count(*) from public.memory_media where id = '49000000-0000-4000-8000-000000000008'$$,
+  $$values (0::bigint)$$,
+  'another player cannot see the profile asset'
+);
 
 reset role;
 set local role authenticated;
@@ -151,6 +210,38 @@ select set_config(
   'request.jwt.claims',
   '{"sub":"00000000-0000-4000-8000-000000000001","role":"authenticated"}',
   true
+);
+select lives_ok(
+  $$insert into public.memory_media (
+      id,
+      character_id,
+      storage_object_name,
+      purpose,
+      mime_type,
+      file_name,
+      created_by
+    ) values (
+      '49000000-0000-4000-8000-000000000009',
+      '20000000-0000-4000-8000-000000000004',
+      'characters/20000000-0000-4000-8000-000000000004/assets/49000000-0000-4000-8000-000000000009.webp',
+      'attachment',
+      'image/webp',
+      'other-character.webp',
+      '00000000-0000-4000-8000-000000000001'
+    )$$,
+  'an administrator can add another character profile candidate'
+);
+select throws_ok(
+  $$update public.characters
+    set profile_media_id = '49000000-0000-4000-8000-000000000009'
+    where id = '20000000-0000-4000-8000-000000000003'$$,
+  '23514',
+  null,
+  'a character cannot select another character profile asset'
+);
+select lives_ok(
+  $$delete from public.memory_media where id = '49000000-0000-4000-8000-000000000008'$$,
+  'removing a profile asset clears the character pointer'
 );
 select lives_ok(
   $$delete from public.memory_media where id = '49000000-0000-4000-8000-000000000005'$$,

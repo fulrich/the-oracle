@@ -16,7 +16,11 @@ vi.mock("@/lib/supabase/server", () => ({
   createServerSupabaseClient: createServerClientMock,
 }));
 
-import { prepareMediaUpload, registerMediaAsset } from "./media-actions";
+import {
+  prepareMediaUpload,
+  registerMediaAsset,
+  setCharacterProfileMedia,
+} from "./media-actions";
 
 const characterId = "20000000-0000-4000-8000-000000000003";
 const assetId = "49000000-0000-4000-8000-000000000010";
@@ -128,5 +132,59 @@ describe("DM media actions", () => {
       }),
     ).rejects.toThrow("not-found");
     expect(createServerClientMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects an invalid profile selection before touching Supabase", async () => {
+    const result = await setCharacterProfileMedia({
+      characterId,
+      assetId: "not-a-uuid",
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      message: "Choose a valid character and image.",
+    });
+    expect(createServerClientMock).not.toHaveBeenCalled();
+  });
+
+  it("updates the profile pointer only after validating the character asset", async () => {
+    const update = vi.fn().mockReturnValue({
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    });
+    const from = vi.fn((table: string) => {
+      if (table === "characters") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: vi.fn().mockResolvedValue({
+                data: { id: characterId },
+                error: null,
+              }),
+            }),
+          }),
+          update,
+        };
+      }
+
+      return {
+        select: () => ({
+          eq: () => ({
+            eq: () => ({
+              maybeSingle: vi.fn().mockResolvedValue({
+                data: { id: assetId },
+                error: null,
+              }),
+            }),
+          }),
+        }),
+      };
+    });
+    createServerClientMock.mockResolvedValue({ from });
+
+    const result = await setCharacterProfileMedia({ characterId, assetId });
+
+    expect(result).toEqual({ ok: true, assetId });
+    expect(update).toHaveBeenCalledWith({ profile_media_id: assetId });
+    expect(revalidatePathMock).toHaveBeenCalledWith("/dm");
   });
 });

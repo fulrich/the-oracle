@@ -11,6 +11,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { signOut } from "@/app/auth/actions";
 import { assignPlayerToCharacter } from "@/app/dm/actions";
+import { CharacterAvatar } from "@/components/character-avatar";
 import { getAuthState } from "@/lib/auth";
 import { loadCharacterAssignments } from "@/lib/dm.server";
 
@@ -129,9 +130,13 @@ export default async function DmPage({
               key={character.id}
             >
               <div className="flex items-center gap-4">
-                <span className="grid size-11 shrink-0 place-items-center border border-[#c6a979]/25 bg-[#c6a979]/5 font-serif text-sm text-[#e2d5bd]">
-                  {character.initials}
-                </span>
+                <CharacterAvatar
+                  className="size-11 shrink-0 border border-[#c6a979]/25 bg-[#c6a979]/5 font-serif text-sm text-[#e2d5bd]"
+                  displayName={character.displayName}
+                  initials={character.initials}
+                  profileMediaId={character.profileMediaId}
+                  sizes="2.75rem"
+                />
                 <div>
                   <h2 className="text-base font-semibold text-[#e5e1d7]">
                     {character.displayName}

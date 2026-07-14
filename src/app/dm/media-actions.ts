@@ -79,6 +79,10 @@ const detachMediaSchema = z.object({
 });
 
 const assetIdSchema = z.object({ assetId: z.uuid() });
+const profileMediaSchema = z.object({
+  characterId: z.uuid(),
+  assetId: z.uuid().nullable(),
+});
 
 export type MediaActionResult =
   | { ok: true; assetId: string; message?: string }
@@ -89,6 +93,7 @@ function failure(message: string): { ok: false; message: string } {
 }
 
 function revalidateMedia(characterId: string, memoryId?: string) {
+  revalidatePath("/dm");
   revalidatePath("/dm/media");
   revalidatePath(`/dm/characters/${characterId}`);
   if (memoryId) {
@@ -96,6 +101,53 @@ function revalidateMedia(characterId: string, memoryId?: string) {
   }
   revalidatePath(`/dm/preview/${characterId}`);
   revalidatePath("/");
+}
+
+export async function setCharacterProfileMedia(input: {
+  characterId: string;
+  assetId: string | null;
+}): Promise<MediaActionResult> {
+  await requireAdministrator();
+  const parsed = profileMediaSchema.safeParse(input);
+  if (!parsed.success) {
+    return failure("Choose a valid character and image.");
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { data: character, error: characterError } = await supabase
+    .from("characters")
+    .select("id")
+    .eq("id", parsed.data.characterId)
+    .maybeSingle();
+
+  if (characterError || !character) {
+    return failure("That character is not available.");
+  }
+
+  if (parsed.data.assetId) {
+    const { data: asset, error: assetError } = await supabase
+      .from("memory_media")
+      .select("id")
+      .eq("id", parsed.data.assetId)
+      .eq("character_id", parsed.data.characterId)
+      .maybeSingle();
+
+    if (assetError || !asset) {
+      return failure("Choose an image from this character's library.");
+    }
+  }
+
+  const { error: updateError } = await supabase
+    .from("characters")
+    .update({ profile_media_id: parsed.data.assetId })
+    .eq("id", parsed.data.characterId);
+
+  if (updateError) {
+    return failure("The profile image could not be updated.");
+  }
+
+  revalidateMedia(parsed.data.characterId);
+  return { ok: true, assetId: parsed.data.assetId ?? "" };
 }
 
 export async function prepareMediaUpload(input: {

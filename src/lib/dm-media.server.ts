@@ -31,6 +31,7 @@ export type DmMediaAsset = Pick<
   memoryTitle: string | null;
   memoryPosition: number | null;
   previewUrl: string;
+  isProfile: boolean;
 };
 
 export type DmMediaLibrary = {
@@ -48,7 +49,9 @@ export async function loadDmMediaLibrary(
   const supabase = await createServerSupabaseClient();
   const { data: characterRows, error: characterError } = await supabase
     .from("characters")
-    .select("id, slug, display_name, initials, subtitle, archive_note")
+    .select(
+      "id, slug, display_name, initials, subtitle, archive_note, profile_media_id",
+    )
     .order("display_name");
 
   if (characterError) {
@@ -75,6 +78,7 @@ export async function loadDmMediaLibrary(
         initials: character.initials,
         subtitle: character.subtitle,
         archiveNote: character.archive_note,
+        profileMediaId: character.profile_media_id,
         memories: memories.map((memory) => ({
           id: memory.id,
           position: memory.position,
@@ -127,6 +131,7 @@ export async function loadDmMediaLibrary(
       memoryTitle: memory?.title ?? null,
       memoryPosition: memory?.position ?? null,
       previewUrl: `/api/memory-media/${row.id}`,
+      isProfile: selectedCharacter?.profileMediaId === row.id,
     };
   });
 

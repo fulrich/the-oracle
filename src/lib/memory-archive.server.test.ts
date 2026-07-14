@@ -26,6 +26,7 @@ const viewer: ActiveViewer & {
     initials: "KI",
     subtitle: null,
     archiveNote: null,
+    profileMediaId: "49000000-0000-4000-8000-000000000010",
   },
 };
 
@@ -55,6 +56,7 @@ describe("database memory archive mapping", () => {
     expect(memorySet).toMatchObject({
       playerName: "Kaelen Ironheart",
       playerInitials: "KI",
+      profileMediaId: "49000000-0000-4000-8000-000000000010",
       memories: [
         {
           id: row.memory_id,

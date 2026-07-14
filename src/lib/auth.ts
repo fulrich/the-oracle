@@ -14,6 +14,7 @@ export type CharacterIdentity = {
   initials: string;
   subtitle: string | null;
   archiveNote: string | null;
+  profileMediaId?: string | null;
 };
 
 export type ActiveViewer = {
@@ -63,7 +64,7 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
   const { data: assignment, error: assignmentError } = await supabase
     .from("character_assignments")
     .select(
-      "character_id, characters(id, slug, display_name, initials, subtitle, archive_note)",
+      "character_id, characters(id, slug, display_name, initials, subtitle, archive_note, profile_media_id)",
     )
     .eq("allowed_user_id", allowedUser.id)
     .maybeSingle();
@@ -80,6 +81,7 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
         initials: assignment.characters.initials,
         subtitle: assignment.characters.subtitle,
         archiveNote: assignment.characters.archive_note,
+        profileMediaId: assignment.characters.profile_media_id,
       }
     : null;
 

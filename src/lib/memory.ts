@@ -35,5 +35,6 @@ export type MemorySet = {
   playerName: string;
   playerInitials: string;
   playerSubtitle: string;
+  profileMediaId?: string | null;
   memories: readonly Memory[];
 };

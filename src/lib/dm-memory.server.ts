@@ -37,6 +37,7 @@ export type DmMemoryMediaDetail = {
 function assetFromRow(
   row: MemoryMediaRow,
   memory: { title: string; position: number } | null,
+  profileMediaId: string | null,
 ): DmMediaAsset {
   return {
     id: row.id,
@@ -53,6 +54,7 @@ function assetFromRow(
     memoryTitle: memory?.title ?? null,
     memoryPosition: memory?.position ?? null,
     previewUrl: `/api/memory-media/${row.id}`,
+    isProfile: profileMediaId === row.id,
   };
 }
 
@@ -64,7 +66,9 @@ export async function loadDmMemoryMedia(
   const [characterResult, memoryResult, mediaResult] = await Promise.all([
     supabase
       .from("characters")
-      .select("id, slug, display_name, initials, subtitle, archive_note")
+      .select(
+        "id, slug, display_name, initials, subtitle, archive_note, profile_media_id",
+      )
       .eq("id", characterId)
       .maybeSingle(),
     supabase
@@ -98,10 +102,15 @@ export async function loadDmMemoryMedia(
     initials: characterResult.data.initials,
     subtitle: characterResult.data.subtitle,
     archiveNote: characterResult.data.archive_note,
+    profileMediaId: characterResult.data.profile_media_id,
   };
   const memoryOption = { title: memory.title, position: memory.position };
   const assets = mediaResult.data.map((row) =>
-    assetFromRow(row, row.memory_id ? memoryOption : null),
+    assetFromRow(
+      row,
+      row.memory_id ? memoryOption : null,
+      character.profileMediaId ?? null,
+    ),
   );
 
   return {

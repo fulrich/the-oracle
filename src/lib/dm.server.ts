@@ -16,7 +16,9 @@ export async function loadCharacterAssignments(): Promise<
   const [charactersResult, assignmentsResult] = await Promise.all([
     supabase
       .from("characters")
-      .select("id, slug, display_name, initials, subtitle, archive_note")
+      .select(
+        "id, slug, display_name, initials, subtitle, archive_note, profile_media_id",
+      )
       .order("display_name"),
     supabase.from("character_assignments").select(
       `
@@ -45,6 +47,7 @@ export async function loadCharacterAssignments(): Promise<
       initials: character.initials,
       subtitle: character.subtitle,
       archiveNote: character.archive_note,
+      profileMediaId: character.profile_media_id,
       assignment: assignment
         ? { email: assignment.allowed_users.normalized_email }
         : null,
@@ -73,7 +76,9 @@ export async function loadDmCharacterMemories(
   const [characterResult, memoriesResult] = await Promise.all([
     supabase
       .from("characters")
-      .select("id, slug, display_name, initials, subtitle, archive_note")
+      .select(
+        "id, slug, display_name, initials, subtitle, archive_note, profile_media_id",
+      )
       .eq("id", characterId)
       .maybeSingle(),
     supabase
@@ -101,6 +106,7 @@ export async function loadDmCharacterMemories(
       initials: characterResult.data.initials,
       subtitle: characterResult.data.subtitle,
       archiveNote: characterResult.data.archive_note,
+      profileMediaId: characterResult.data.profile_media_id,
     },
     memories: memoriesResult.data.map((memory) => ({
       id: memory.id,
@@ -123,7 +129,9 @@ export async function loadDmCharacterPreview(
   const supabase = await createServerSupabaseClient();
   const { data: characterRow, error: characterError } = await supabase
     .from("characters")
-    .select("id, slug, display_name, initials, subtitle, archive_note")
+    .select(
+      "id, slug, display_name, initials, subtitle, archive_note, profile_media_id",
+    )
     .eq("id", characterId)
     .maybeSingle();
 
@@ -141,6 +149,7 @@ export async function loadDmCharacterPreview(
     initials: characterRow.initials,
     subtitle: characterRow.subtitle,
     archiveNote: characterRow.archive_note,
+    profileMediaId: characterRow.profile_media_id,
   };
 
   const { data: archiveRows, error: archiveError } = await supabase.rpc(

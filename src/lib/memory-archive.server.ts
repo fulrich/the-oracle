@@ -60,6 +60,7 @@ export function archiveRowsToMemorySet(
     playerName: character.displayName,
     playerInitials: character.initials,
     playerSubtitle: character.subtitle ?? "Player character",
+    profileMediaId: character.profileMediaId,
     memories: rows.map((row, index) => ({
       id: row.memory_id,
       chapter: row.chapter_label,

@@ -147,6 +147,7 @@ export type Database = {
           display_name: string;
           id: string;
           initials: string;
+          profile_media_id: string | null;
           slug: string;
           subtitle: string | null;
           updated_at: string;
@@ -158,6 +159,7 @@ export type Database = {
           display_name: string;
           id?: string;
           initials: string;
+          profile_media_id?: string | null;
           slug: string;
           subtitle?: string | null;
           updated_at?: string;
@@ -169,11 +171,20 @@ export type Database = {
           display_name?: string;
           id?: string;
           initials?: string;
+          profile_media_id?: string | null;
           slug?: string;
           subtitle?: string | null;
           updated_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "characters_profile_media_id_fkey";
+            columns: ["profile_media_id"];
+            isOneToOne: false;
+            referencedRelation: "memory_media";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       memories: {
         Row: {

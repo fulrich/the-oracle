@@ -8,6 +8,7 @@ import {
   deleteMediaAsset,
   prepareMediaUpload,
   registerMediaAsset,
+  setCharacterProfileMedia,
   updateMediaAsset,
 } from "@/app/dm/media-actions";
 import { DmImageLightbox } from "@/components/dm-image-lightbox";
@@ -180,7 +181,7 @@ export function DmMediaLibrary({
       setDrafts([]);
       setMessage({
         kind: "success",
-        text: `${uploaded} image${uploaded === 1 ? "" : "s"} added to the library. Attach them from a memory page.`,
+        text: `${uploaded} image${uploaded === 1 ? "" : "s"} added to the library. Set one as a profile image or attach it from a memory page.`,
       });
       router.refresh();
     } catch (error) {
@@ -211,8 +212,8 @@ export function DmMediaLibrary({
             Drop artwork
           </h2>
           <p className="mt-2 text-sm leading-6 text-[#7f898d]">
-            Names do not matter. Organize images here first, then attach them to
-            a specific memory from memory management.
+            Names do not matter. Organize images here first, then set a profile
+            image or attach artwork to a specific memory.
           </p>
 
           <div className="mt-6 grid gap-4">
@@ -412,6 +413,21 @@ function MediaAssetCard({
     onChanged();
   }
 
+  async function setProfile() {
+    setBusy(true);
+    setMessage(null);
+    const result = await setCharacterProfileMedia({
+      characterId: character.id,
+      assetId: asset.isProfile ? null : asset.id,
+    });
+    setBusy(false);
+    if (!result.ok) {
+      setMessage(result.message);
+      return;
+    }
+    onChanged();
+  }
+
   async function remove() {
     if (!window.confirm("Remove this image from the library?")) return;
     setBusy(true);
@@ -435,7 +451,7 @@ function MediaAssetCard({
           src={asset.previewUrl}
         />
         <span className="absolute top-2 left-2 bg-[#090d13]/80 px-2 py-1 font-mono text-[0.5rem] tracking-[0.1em] text-[#b5c0bd] uppercase">
-          {purposeLabels[asset.purpose]}
+          {asset.isProfile ? "Profile image" : purposeLabels[asset.purpose]}
         </span>
       </div>
 
@@ -443,6 +459,18 @@ function MediaAssetCard({
         <p className="truncate text-sm text-[#d5d8d1]" title={asset.file_name}>
           {asset.file_name}
         </p>
+        <button
+          className="border border-[#c6a979]/25 bg-[#c6a979]/5 px-3 py-2 text-[0.58rem] tracking-[0.1em] text-[#d9c8a9] uppercase hover:border-[#c6a979]/45 hover:bg-[#c6a979]/9 focus-visible:ring-2 focus-visible:ring-[#8ad9cb]/65 disabled:cursor-wait disabled:opacity-50"
+          disabled={busy}
+          onClick={() => void setProfile()}
+          type="button"
+        >
+          {busy
+            ? "Saving…"
+            : asset.isProfile
+              ? "Clear profile image"
+              : "Use as profile image"}
+        </button>
         <p className="text-xs text-[#858f92]">
           {asset.memory_id ? (
             <Link

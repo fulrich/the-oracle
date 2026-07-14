@@ -13,6 +13,7 @@ import { z } from "zod";
 
 import { signOut } from "@/app/auth/actions";
 import { setMemoryVisibility } from "@/app/dm/actions";
+import { CharacterAvatar } from "@/components/character-avatar";
 import { getAuthState } from "@/lib/auth";
 import { loadDmCharacterMemories } from "@/lib/dm.server";
 
@@ -94,9 +95,13 @@ export default async function DmCharacterMemoriesPage({
 
         <div className="mt-8 flex flex-col justify-between gap-6 border-b border-white/10 pb-8 sm:flex-row sm:items-end">
           <div className="flex items-center gap-4">
-            <span className="grid size-14 shrink-0 place-items-center border border-[#c6a979]/25 bg-[#c6a979]/5 font-serif text-base text-[#e2d5bd]">
-              {archive.character.initials}
-            </span>
+            <CharacterAvatar
+              className="size-14 shrink-0 border border-[#c6a979]/25 bg-[#c6a979]/5 font-serif text-base text-[#e2d5bd]"
+              displayName={archive.character.displayName}
+              initials={archive.character.initials}
+              profileMediaId={archive.character.profileMediaId}
+              sizes="3.5rem"
+            />
             <div>
               <p className="font-mono text-[0.58rem] tracking-[0.14em] text-[#8ad9cb] uppercase">
                 Character memories
